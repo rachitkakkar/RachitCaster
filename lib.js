@@ -1,6 +1,19 @@
+// Util functions
+async function loadImage(imageUrl) {
+    let img;
+    const imageLoadPromise = new Promise(resolve => {
+        img = new Image();
+        img.onload = resolve;
+        img.src = imageUrl;
+    });
+
+    await imageLoadPromise;
+    return img;
+}
+
 // Drawing functions
 function drawPixel(screen, x, y, screenWidth, red, green, blue) {
-    var pixelindex = (y * screenWidth + x) * 4;
+    let pixelindex = (y * screenWidth + x) * 4;
     
     screen.data[pixelindex] = red;
     screen.data[pixelindex+1] = green;

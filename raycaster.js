@@ -1,6 +1,6 @@
 // Screen dimensions
-var screenWidth = window.innerWidth;
-var screenHeight = window.innerHeight;
+const screenWidth = window.innerWidth;
+const screenHeight = window.innerHeight;
 
 // Dealing with canvas
 var canvas = document.getElementById("viewport");
@@ -15,13 +15,9 @@ var now;
 var lastUpdate;
 var deltaTime;
 
-// Textures
-var wallTexure = new Image();
-wallTexure.src = "wall.png";
-
 // World representation
-var mapWidth = 24;
-var mapHeight = 24;
+const mapWidth = 24;
+const mapHeight = 24;
 const map = 
 [
     [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
@@ -123,7 +119,7 @@ function main()
             (rayDirection.y == 0) ? 1e+30 : Math.abs(1 / rayDirection.y)
         );
 
-        let step = new Vector2();
+        var step = new Vector2();
         let hit = false;
         let side;
 
@@ -170,7 +166,7 @@ function main()
                 hit = true;
         }
 
-        let perpendicularWallDistance = new Vector2();
+        let perpendicularWallDistance;
         if (side == 0)
             perpendicularWallDistance = (sideDistance.x - deltaDistance.x);
         else
@@ -184,11 +180,42 @@ function main()
         if (drawEnd >= screenHeight)  
             drawEnd = screenHeight - 1;
 
-        let color = 255;
-        if (side == 1)
-            color /= 2;
-        
-        drawVerticalLine(screen, x, drawStart, drawEnd, screenWidth, color, 0, 0);
+        let wallX;
+        if (side == 0)
+            wallX = position.y + perpendicularWallDistance * rayDirection.y;
+        else
+            wallX = position.x + perpendicularWallDistance * rayDirection.x;
+        wallX -= Math.floor(wallX);
+
+        let textureCoords = new Vector2();
+        textureCoords.x = int(wallX * textureWidth);
+        if (side == 0 && rayDirection.x > 0)
+            textureCoords.x = textureWidth - textureCoords.x - 1;
+        if (side == 1 && rayDirection.y < 0)
+            textureCoords.x = textureWidth - textureCoords.x - 1;
+
+        var step = 1.0 * textureHeight / lineHeight;
+        let texturePosition = (drawStart - screenHeight / 2 + lineHeight / 2) * step;
+        for(let y = int(drawStart); y < int(drawEnd); y++)
+        {
+            textureCoords.y = int(texturePosition) & (textureHeight - 1);
+            texturePosition += step;
+            pixelindex = (textureCoords.y * textureWidth + textureCoords.x) * 4;
+
+            let dimFactor = 0.8;
+            let temp = dimFactor;
+            for (let i = 100; i >= 0; i -= 1) {
+                temp += 0.01;
+                if (lineHeight < i)
+                    dimFactor = temp;
+            }
+            
+            let red = texture.data[pixelindex] / dimFactor;
+            let green = texture.data[pixelindex+1] / dimFactor;
+            let blue = texture.data[pixelindex+2] / dimFactor;
+
+            drawPixel(screen, x, y, screenWidth, red, green, blue);
+        }
     }
 
     ctx.putImageData(screen, 0, 0);
@@ -208,4 +235,11 @@ function main()
     ctx.fillText(`${(1 / deltaTime).toFixed(3)} FPS`, 5, 50);
 }
 
-main();
+// Textures
+const textureWidth = 128;
+const textureHeight = 128;
+loadImage('wall.png').then(image => {
+    ctx.drawImage(image, 0, 0);
+    texture = ctx.getImageData(0, 0, textureWidth, textureHeight);
+    main();
+});
