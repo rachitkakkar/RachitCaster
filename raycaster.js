@@ -202,6 +202,14 @@ function main()
             texturePosition += step;
             pixelindex = (textureCoords.y * textureWidth + textureCoords.x) * 4;
 
+            let nearness;
+            if (lineHeight > 100)
+                nearness = 100;
+            else
+                nearness = lineHeight;
+    
+            let dimFactor = 0.8 + (0.01 * (100 - nearness));
+            /*
             let dimFactor = 0.8;
             let temp = dimFactor;
             for (let i = 100; i >= 0; i -= 1) {
@@ -209,6 +217,7 @@ function main()
                 if (lineHeight < i)
                     dimFactor = temp;
             }
+            */
             
             let red = texture.data[pixelindex] / dimFactor;
             let green = texture.data[pixelindex+1] / dimFactor;
