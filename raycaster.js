@@ -108,6 +108,9 @@ function main()
     deltaTime = (now - lastUpdate) / 1000;
     lastUpdate = now;
 
+    moveSpeed = 40 * deltaTime;
+    rotationSpeed = 10 * deltaTime;
+
     for (let x = 0; x < screenWidth; x++) {
         let cameraX = 2 * x / screenWidth - 1;
         let rayDirection = new Vector2(direction.x + plane.x * cameraX, direction.y + plane.y * cameraX);
@@ -234,8 +237,6 @@ function main()
         }
     }
 
-    moveSpeed = 35 * deltaTime;
-    rotationSpeed = 10 * deltaTime;
     window.requestAnimationFrame(main);
 
     ctx.font = "22px Helvetica";
@@ -245,9 +246,9 @@ function main()
 }
 
 // Textures
-const textureWidth = 128;
-const textureHeight = 128;
-loadImage('wall.png').then(image => {
+const textureWidth = 64;
+const textureHeight = 64;
+loadImage('bricks.png').then(image => {
     ctx.drawImage(image, 0, 0);
     texture = ctx.getImageData(0, 0, textureWidth, textureHeight);
     main();
