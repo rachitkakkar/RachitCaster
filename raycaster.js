@@ -85,17 +85,17 @@ function keyPush(event)
             break;
         case "ArrowUp":
             var newPosition = new Vector2(position.x + (direction.x * moveSpeed), position.y + (direction.y * moveSpeed));
-            if(map[int(newPosition.x)][int(position.y)] == 0)
+            if (map[int(newPosition.x)][int(position.y)] == 0)
                 position.x = newPosition.x;
-            if(map[int(position.x)][int(newPosition.y)] == 0) 
+            if (map[int(position.x)][int(newPosition.y)] == 0) 
                 position.y = newPosition.y;
 
             break;
         case "ArrowDown":
             var newPosition = new Vector2(position.x - (direction.x * moveSpeed), position.y - (direction.y * moveSpeed));
-            if(map[int(newPosition.x)][int(position.y)] == 0)
+            if (map[int(newPosition.x)][int(position.y)] == 0)
                 position.x = newPosition.x;
-            if(map[int(position.x)][int(newPosition.y)] == 0) 
+            if (map[int(position.x)][int(newPosition.y)] == 0) 
                 position.y = newPosition.y;
             break;
     }
@@ -104,10 +104,12 @@ function keyPush(event)
 // Main loop
 function main()
 {
+    // Calculate delta time
     now = Date.now();
     deltaTime = (now - lastUpdate) / 1000;
     lastUpdate = now;
 
+    // Use delta time to calculate a smooth movement speed based on framerate
     moveSpeed = 40 * deltaTime;
     rotationSpeed = 10 * deltaTime;
 
@@ -205,12 +207,15 @@ function main()
             texturePosition += step;
             pixelindex = (textureCoords.y * textureWidth + textureCoords.x) * 4;
 
+            // Calculate the lighting of the texture based on the height of the line being rendered (which is based off of distance)
             let nearness;
-            if (lineHeight > 100)
+            if (lineHeight > 100) // If the line is bigger than a 100 pixels, make it full brightness
                 nearness = 100;
             else
                 nearness = lineHeight;
-    
+
+            // Add 0.01 to the "dimness factor" for every pixel in the difference between the line height and a 100 pixels
+            // Make the max "dimness factor" 0.8 so it is slightly brighter than the actual texture
             let dimFactor = 0.8 + (0.01 * (100 - nearness));
             /*
             let dimFactor = 0.8;
@@ -222,6 +227,7 @@ function main()
             }
             */
             
+            // Divide the actual pixel values of the texture by this "dimmess factor" to make it dimmer or brighter
             let red = texture.data[pixelindex] / dimFactor;
             let green = texture.data[pixelindex+1] / dimFactor;
             let blue = texture.data[pixelindex+2] / dimFactor;
