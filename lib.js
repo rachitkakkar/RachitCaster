@@ -11,6 +11,24 @@ async function loadImage(imageUrl) {
     return img;
 }
 
+async function loadImages(imageUrlArray) {
+    const promiseArray = [];
+    const imageArray = [];
+
+    for (let imageUrl of imageUrlArray) {
+
+        promiseArray.push(new Promise(resolve => {
+            const img = new Image();
+            img.onload = resolve;
+            img.src = imageUrl;
+            imageArray.push(img);
+        }));
+    }
+
+    await Promise.all(promiseArray);
+    return imageArray;
+}
+
 // Drawing functions
 function drawPixel(screen, x, y, screenWidth, red, green, blue) {
     let pixelindex = (y * screenWidth + x) * 4;
@@ -20,6 +38,17 @@ function drawPixel(screen, x, y, screenWidth, red, green, blue) {
     screen.data[pixelindex+2] = blue;
     screen.data[pixelindex+3] = 255;
 }
+
+/*
+function getPixel(screen, x, y, screenWidth) {
+    let pixelindex = (y * screenWidth + x) * 4;
+    let red = screen.data[pixelindex]
+    let green = screen.data[pixelindex+1];
+    let blue = screen.data[pixelindex+2];
+
+    return [red, green, blue];
+}
+*/
 
 function drawRectangle(screen, x, y, width, height, screenWidth, red, green, blue) {
     for (let xOffset = 0; xOffset < width; xOffset++) {
@@ -50,7 +79,7 @@ function drawPixelBlock(x, y, width, height, color)
 */
 
 // Math functions
-function int(value) { return parseInt(value); }
+function int(value) { return Math.trunc(value); } // Originally parseInt(), but it was very slow and affected performance considerably
 function float(value) { return parseFloat(value); }
 function rgbToHex(r, g, b) // Unused
 {

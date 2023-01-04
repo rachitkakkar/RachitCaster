@@ -53,12 +53,11 @@ var plane = new Vector2(0, 0.66);
 
 var moveSpeed;
 var rotationSpeed;
+
 // Input and key handling
 document.addEventListener("keydown", keyPush);
-function keyPush(event)
-{
-    switch(event.key)
-    {
+function keyPush(event) {
+    switch(event.key) {
         case "ArrowLeft":
             var newDirection = new Vector2();
             newDirection.x = direction.x * Math.cos(rotationSpeed) - direction.y * Math.sin(rotationSpeed);
@@ -102,16 +101,55 @@ function keyPush(event)
 }
 
 // Main loop
-function main()
-{
+function main() {
     // Calculate delta time
     now = Date.now();
     deltaTime = (now - lastUpdate) / 1000;
     lastUpdate = now;
 
+    ctx.putImageData(screen, 0, 0);
+    for (let i = 0; i < screenWidth; i++) {
+        for (let j = 0; j < screenHeight; j++) {
+            drawPixel(screen, i, j, screenWidth, 0, 0, 0);
+        }
+    }
+
     // Use delta time to calculate a smooth movement speed based on framerate
     moveSpeed = 40 * deltaTime;
     rotationSpeed = 10 * deltaTime;
+
+    drawRectangle(screen, 0, 0, screenWidth, screenHeight / 2, screenWidth, 0, 191, 255);
+    drawRectangle(screen, 0, screenHeight / 2, screenWidth, screenHeight, screenWidth, 72, 171, 62);
+    
+    /*
+    let leftRayDirection = new Vector2(direction.x - plane.x, direction.y - plane.y);
+    let rightRayDirection = new Vector2(direction.x + plane.x, direction.y + plane.y);
+    for (let y = 0; y < screenHeight; y++) {
+        let p = y - screenHeight / 2;
+        let posZ = 0.5 * screenHeight;
+        let rowDistance = posZ / p;
+
+        let floorStep = new Vector2(rowDistance * (rightRayDirection.x - leftRayDirection.x) / screenWidth, 
+                                rowDistance * (rightRayDirection.y - leftRayDirection.y) / screenWidth); 
+        let floor = new Vector2(position.x + rowDistance * leftRayDirection.x, position.y + rowDistance * leftRayDirection.y);
+
+        for (let x = 0; x < screenWidth; x++) {
+            let cell = new Vector2(int(floor.x), int(floor.y));
+            let textureCoords = new Vector2(int(textureWidth * (floor.x - cell.x)) & (textureWidth - 1),
+                                            int(textureHeight * (floor.y - cell.y)) & (textureHeight - 1));
+
+            floor.x += floorStep.x;
+            floor.y += floorStep.y;
+            
+            let pixelindex = (textureCoords.y * textureWidth + textureCoords.x) * 4;
+            let red = groundTexture.data[pixelindex];
+            let green = groundTexture.data[pixelindex+1];
+            let blue = groundTexture.data[pixelindex+2];
+
+            drawPixel(screen, x, y, screenWidth, red, green, blue);
+        }
+    }
+    */
 
     for (let x = 0; x < screenWidth; x++) {
         let cameraX = 2 * x / screenWidth - 1;
@@ -128,39 +166,32 @@ function main()
         let hit = false;
         let side;
 
-        if (rayDirection.x < 0)
-        {
+        if (rayDirection.x < 0) {
           step.x = -1;
           sideDistance.x = (position.x - mapCoords.x) * deltaDistance.x;
         }
-        else
-        {
+        else {
           step.x = 1;
           sideDistance.x = (mapCoords.x + 1 - position.x) * deltaDistance.x;
         }
-        if (rayDirection.y < 0)
-        {
+        if (rayDirection.y < 0) {
           step.y = -1;
           sideDistance.y = (position.y - mapCoords.y) * deltaDistance.y;
         }
-        else
-        {
+        else {
           step.y = 1;
           sideDistance.y = (mapCoords.y + 1 - position.y) * deltaDistance.y;
         }
 
         // DDA raycasting loop
-        while (!hit)
-        {
-            if (sideDistance.x < sideDistance.y)
-            {
+        while (!hit) {
+            if (sideDistance.x < sideDistance.y) {
                 sideDistance.x += deltaDistance.x;
                 mapCoords.x += step.x;
                 side = 0;
             }
 
-            else
-            {
+            else {
                 sideDistance.y += deltaDistance.y;
                 mapCoords.y += step.y;
                 side = 1;
@@ -201,11 +232,9 @@ function main()
 
         var step = 1.0 * textureHeight / lineHeight;
         let texturePosition = (drawStart - screenHeight / 2 + lineHeight / 2) * step;
-        for(let y = int(drawStart); y < int(drawEnd); y++)
-        {
+        for (let y = int(drawStart); y < int(drawEnd); y++) {
             textureCoords.y = int(texturePosition) & (textureHeight - 1);
             texturePosition += step;
-            pixelindex = (textureCoords.y * textureWidth + textureCoords.x) * 4;
 
             // Calculate the lighting of the texture based on the height of the line being rendered (which is based off of distance)
             let nearness;
@@ -215,8 +244,7 @@ function main()
                 nearness = lineHeight;
 
             // Add 0.01 to the "dimness factor" for every pixel in the difference between the line height and a 100 pixels
-            // Make the max "dimness factor" 0.8 so it is slightly brighter than the actual texture
-            let dimFactor = 0.8 + (0.01 * (100 - nearness));
+            let dimFactor = 0.8 + (0.01 * (100 - nearness)); // Make the max "dimness factor" 0.8 so it is slightly brighter than the actual texture
             /*
             let dimFactor = 0.8;
             let temp = dimFactor;
@@ -228,20 +256,16 @@ function main()
             */
             
             // Divide the actual pixel values of the texture by this "dimmess factor" to make it dimmer or brighter
-            let red = texture.data[pixelindex] / dimFactor;
-            let green = texture.data[pixelindex+1] / dimFactor;
-            let blue = texture.data[pixelindex+2] / dimFactor;
+            pixelindex = (textureCoords.y * textureWidth + textureCoords.x) * 4;
+            let red = wallTexture.data[pixelindex] / dimFactor;
+            let green = wallTexture.data[pixelindex+1] / dimFactor;
+            let blue = wallTexture.data[pixelindex+2] / dimFactor;
 
             drawPixel(screen, x, y, screenWidth, red, green, blue);
         }
     }
 
     ctx.putImageData(screen, 0, 0);
-    for (let i = 0; i < screenWidth; i++) {
-        for (let j = 0; j < screenHeight; j++) {
-            drawPixel(screen, i, j, screenWidth, 0, 0, 0);
-        }
-    }
 
     window.requestAnimationFrame(main);
 
@@ -254,8 +278,14 @@ function main()
 // Textures
 const textureWidth = 64;
 const textureHeight = 64;
-loadImage('bricks.png').then(image => {
-    ctx.drawImage(image, 0, 0);
-    texture = ctx.getImageData(0, 0, textureWidth, textureHeight);
+const textureUrls = ['bricks.png', 'grass.jpg'];
+
+loadImages(textureUrls).then(textures => {
+    ctx.drawImage(textures[0], 0, 0);
+    wallTexture = ctx.getImageData(0, 0, textureWidth, textureHeight);
+
+    ctx.drawImage(textures[1], 0, 0);
+    groundTexture = ctx.getImageData(0, 0, textureWidth, textureHeight);
+    
     main();
-});
+})
