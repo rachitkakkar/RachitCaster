@@ -117,11 +117,7 @@ function main() {
     // Use delta time to calculate a smooth movement speed based on framerate
     moveSpeed = 40 * deltaTime;
     rotationSpeed = 10 * deltaTime;
-
-    drawRectangle(screen, 0, 0, screenWidth, screenHeight / 2, screenWidth, 0, 191, 255);
-    drawRectangle(screen, 0, screenHeight / 2, screenWidth, screenHeight, screenWidth, 72, 171, 62);
     
-    /*
     let leftRayDirection = new Vector2(direction.x - plane.x, direction.y - plane.y);
     let rightRayDirection = new Vector2(direction.x + plane.x, direction.y + plane.y);
     for (let y = 0; y < screenHeight; y++) {
@@ -133,6 +129,7 @@ function main() {
                                 rowDistance * (rightRayDirection.y - leftRayDirection.y) / screenWidth); 
         let floor = new Vector2(position.x + rowDistance * leftRayDirection.x, position.y + rowDistance * leftRayDirection.y);
 
+        let dimFactor = 0.8 + (((screenHeight - y - 1) / 5) * 0.01);
         for (let x = 0; x < screenWidth; x++) {
             let cell = new Vector2(int(floor.x), int(floor.y));
             let textureCoords = new Vector2(int(textureWidth * (floor.x - cell.x)) & (textureWidth - 1),
@@ -142,14 +139,24 @@ function main() {
             floor.y += floorStep.y;
             
             let pixelindex = (textureCoords.y * textureWidth + textureCoords.x) * 4;
-            let red = groundTexture.data[pixelindex];
-            let green = groundTexture.data[pixelindex+1];
-            let blue = groundTexture.data[pixelindex+2];
+            let red = groundTexture.data[pixelindex] / dimFactor;
+            let green = groundTexture.data[pixelindex+1] / dimFactor;
+            let blue = groundTexture.data[pixelindex+2] / dimFactor;
 
             drawPixel(screen, x, y, screenWidth, red, green, blue);
+            // drawPixel(screen, x, y, screenWidth, 72 / dimFactor, 171 / dimFactor, 62 / dimFactor);
+            
+            red = ceilingTexture.data[pixelindex] / dimFactor;
+            green = ceilingTexture.data[pixelindex+1] / dimFactor;
+            blue = ceilingTexture.data[pixelindex+2] / dimFactor;
+
+            // drawPixel(screen, x, screenHeight - y - 1, screenWidth, red, green, blue);
+            drawPixel(screen, x, screenHeight - y - 1, screenWidth, 0 / dimFactor, 191 / dimFactor, 255 / dimFactor);
         }
     }
-    */
+
+    // drawRectangle(screen, 0, 0, screenWidth, screenHeight / 2, screenWidth, 0, 191, 255);
+    // drawRectangle(screen, 0, screenHeight / 2, screenWidth, screenHeight, screenWidth, 72, 171, 62);
 
     for (let x = 0; x < screenWidth; x++) {
         let cameraX = 2 * x / screenWidth - 1;
@@ -278,7 +285,7 @@ function main() {
 // Textures
 const textureWidth = 64;
 const textureHeight = 64;
-const textureUrls = ['bricks.png', 'grass.jpg'];
+const textureUrls = ['textures/bricks.png', 'textures/tile_1.png', 'textures/skyBG.png'];
 
 loadImages(textureUrls).then(textures => {
     ctx.drawImage(textures[0], 0, 0);
@@ -286,6 +293,9 @@ loadImages(textureUrls).then(textures => {
 
     ctx.drawImage(textures[1], 0, 0);
     groundTexture = ctx.getImageData(0, 0, textureWidth, textureHeight);
+
+    ctx.drawImage(textures[2], 0, 0);
+    ceilingTexture = ctx.getImageData(0, 0, textureWidth, textureHeight);
     
     main();
 })
