@@ -46,6 +46,10 @@ const map =
     [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
 ];
 
+// Minimap values
+const blockSize = 10;
+const padding = 5;
+
 // Player
 var position = new Vector2(22, 12);
 var direction = new Vector2(-1, 0);
@@ -271,6 +275,19 @@ function main() {
             drawPixel(screen, x, y, screenWidth, red, green, blue);
         }
     }
+
+
+    // Render minimap
+    for (let x = 0; x < mapWidth; x += 1) {
+        for (let y = 0; y < mapHeight; y += 1) {
+            if (map[x][y] > 0)
+                drawRectangle(screen, (x * blockSize) + (screenWidth - mapWidth * blockSize - padding), y * blockSize + padding, blockSize, blockSize, screenWidth, 0, 255, 0);
+            else
+                drawRectangle(screen, (x * blockSize) + (screenWidth - mapWidth * blockSize - padding), y * blockSize + padding, blockSize, blockSize, screenWidth, 0, 0, 0);
+        }
+    }
+
+    drawRectangle(screen, (int(position.x) * blockSize) + (screenWidth - mapWidth * blockSize - padding), int(position.y) * blockSize + padding, blockSize, blockSize, screenWidth, 255, 255, 255);
 
     ctx.putImageData(screen, 0, 0);
 
