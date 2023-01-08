@@ -115,8 +115,8 @@ function main() {
     }
 
     // Use delta time to calculate a smooth movement speed based on framerate
-    moveSpeed = 40 * deltaTime;
-    rotationSpeed = 10 * deltaTime;
+    moveSpeed = 30 * deltaTime;
+    rotationSpeed = 5 * deltaTime;
     
     let leftRayDirection = new Vector2(direction.x - plane.x, direction.y - plane.y);
     let rightRayDirection = new Vector2(direction.x + plane.x, direction.y + plane.y);
@@ -146,9 +146,9 @@ function main() {
             drawPixel(screen, x, y, screenWidth, red, green, blue);
             // drawPixel(screen, x, y, screenWidth, 72 / dimFactor, 171 / dimFactor, 62 / dimFactor);
             
-            red = ceilingTexture.data[pixelindex] / dimFactor;
-            green = ceilingTexture.data[pixelindex+1] / dimFactor;
-            blue = ceilingTexture.data[pixelindex+2] / dimFactor;
+            // red = ceilingTexture.data[pixelindex] / dimFactor;
+            // green = ceilingTexture.data[pixelindex+1] / dimFactor;
+            // blue = ceilingTexture.data[pixelindex+2] / dimFactor;
 
             // drawPixel(screen, x, screenHeight - y - 1, screenWidth, red, green, blue);
             drawPixel(screen, x, screenHeight - y - 1, screenWidth, 0 / dimFactor, 191 / dimFactor, 255 / dimFactor);
@@ -285,7 +285,7 @@ function main() {
 // Textures
 const textureWidth = 64;
 const textureHeight = 64;
-const textureUrls = ['textures/bricks.png', 'textures/tile_1.png', 'textures/skyBG.png'];
+const textureUrls = ['textures/bricks.png', 'textures/tiles.png'];
 
 loadImages(textureUrls).then(textures => {
     ctx.drawImage(textures[0], 0, 0);
@@ -294,8 +294,8 @@ loadImages(textureUrls).then(textures => {
     ctx.drawImage(textures[1], 0, 0);
     groundTexture = ctx.getImageData(0, 0, textureWidth, textureHeight);
 
-    ctx.drawImage(textures[2], 0, 0);
-    ceilingTexture = ctx.getImageData(0, 0, textureWidth, textureHeight);
+    // ctx.drawImage(textures[2], 0, 0);
+    // ceilingTexture = ctx.getImageData(0, 0, textureWidth, textureHeight);
     
     main();
 })
