@@ -40,7 +40,7 @@ function drawPixel(screen, x, y, red, green, blue) {
 }
 
 /*
-function getPixel(screen, x, y, screenWidth) {
+function getPixel(screen, x, y) {
     let pixelindex = (y * screenWidth + x) * 4;
     let red = screen.data[pixelindex]
     let green = screen.data[pixelindex+1];

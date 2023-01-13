@@ -1,6 +1,6 @@
 // Screen dimensions
-const screenWidth = 1000;//window.innerWidth;
-const screenHeight = 600;//window.innerHeight;
+const screenWidth = 1000; //window.innerWidth;
+const screenHeight = 600; //window.innerHeight;
 
 // Dealing with canvas
 var canvas = document.getElementById("viewport");
@@ -311,7 +311,7 @@ function main() {
     ctx.font = "22px Helvetica";
     ctx.fillStyle = "white";
     ctx.fillText("Use Arrow Keys to Move", 5, 25);
-    ctx.fillText(`${(1 / deltaTime).toFixed(3)} FPS`, 5, 50);
+    // ctx.fillText(`${(1 / deltaTime).toFixed(3)} FPS`, 5, 50);
 }
 
 // Textures
@@ -330,4 +330,4 @@ loadImages(textureUrls).then(textures => {
     // ceilingTexture = ctx.getImageData(0, 0, textureWidth, textureHeight);
     
     main();
-})
+});
