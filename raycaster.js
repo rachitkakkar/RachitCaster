@@ -1,6 +1,6 @@
 // Screen dimensions
-const screenWidth = window.innerWidth;
-const screenHeight = window.innerHeight;
+const screenWidth = 1000;//window.innerWidth;
+const screenHeight = 600;//window.innerHeight;
 
 // Dealing with canvas
 var canvas = document.getElementById("viewport");
@@ -88,17 +88,19 @@ function keyPush(event) {
             break;
         case "ArrowUp":
             var newPosition = new Vector2(position.x + (direction.x * moveSpeed), position.y + (direction.y * moveSpeed));
-            if (map[int(newPosition.x)][int(position.y)] == 0)
+            var checkPosition = new Vector2(position.x + (direction.x), position.y + (direction.y));
+            if (map[int(checkPosition.x)][int(position.y)] == 0)
                 position.x = newPosition.x;
-            if (map[int(position.x)][int(newPosition.y)] == 0) 
+            if (map[int(position.x)][int(checkPosition.y)] == 0) 
                 position.y = newPosition.y;
 
             break;
         case "ArrowDown":
             var newPosition = new Vector2(position.x - (direction.x * moveSpeed), position.y - (direction.y * moveSpeed));
-            if (map[int(newPosition.x)][int(position.y)] == 0)
+            var checkPosition = new Vector2(position.x + (direction.x), position.y + (direction.y));
+            if (map[int(checkPosition.x)][int(position.y)] == 0)
                 position.x = newPosition.x;
-            if (map[int(position.x)][int(newPosition.y)] == 0) 
+            if (map[int(position.x)][int(checkPosition.y)] == 0) 
                 position.y = newPosition.y;
             break;
     }
@@ -114,13 +116,15 @@ function main() {
     ctx.putImageData(screen, 0, 0);
     for (let i = 0; i < screenWidth; i++) {
         for (let j = 0; j < screenHeight; j++) {
-            drawPixel(screen, i, j, screenWidth, 0, 0, 0);
+            drawPixel(screen, i, j, 0, 0, 0);
         }
     }
 
     // Use delta time to calculate a smooth movement speed based on framerate
-    moveSpeed = 30 * deltaTime;
+    moveSpeed = 10 * deltaTime;
     rotationSpeed = 5 * deltaTime;
+    // moveSpeed = 45 * deltaTime;
+    // rotationSpeed = 10 * deltaTime;
     
     let leftRayDirection = new Vector2(direction.x - plane.x, direction.y - plane.y);
     let rightRayDirection = new Vector2(direction.x + plane.x, direction.y + plane.y);
@@ -147,21 +151,21 @@ function main() {
             let green = groundTexture.data[pixelindex+1] / dimFactor;
             let blue = groundTexture.data[pixelindex+2] / dimFactor;
 
-            drawPixel(screen, x, y, screenWidth, red, green, blue);
-            // drawPixel(screen, x, y, screenWidth, 72 / dimFactor, 171 / dimFactor, 62 / dimFactor);
+            drawPixel(screen, x, y, red, green, blue);
+            // drawPixel(screen, x, y, 72 / dimFactor, 171 / dimFactor, 62 / dimFactor);
             
             // red = ceilingTexture.data[pixelindex] / dimFactor;
             // green = ceilingTexture.data[pixelindex+1] / dimFactor;
             // blue = ceilingTexture.data[pixelindex+2] / dimFactor;
 
-            // drawPixel(screen, x, screenHeight - y - 1, screenWidth, red, green, blue);
-            drawPixel(screen, x, screenHeight - y - 1, screenWidth, 0 / dimFactor, 191 / dimFactor, 255 / dimFactor);
+            // drawPixel(screen, x, screenHeight - y - 1, red, green, blue);
+            drawPixel(screen, x, screenHeight - y - 1, 0 / dimFactor, 191 / dimFactor, 255 / dimFactor);
         }
     }
 
-    // drawRectangle(screen, 0, 0, screenWidth, screenHeight / 2, screenWidth, 0, 191, 255);
-    // drawRectangle(screen, 0, screenHeight / 2, screenWidth, screenHeight, screenWidth, 72, 171, 62);
-
+    // drawRectangle(screen, 0, 0, screenWidth, screenHeight / 2, 0, 191, 255);
+    // drawRectangle(screen, 0, screenHeight / 2, screenWidth, screenHeight, 72, 171, 62);
+    
     for (let x = 0; x < screenWidth; x++) {
         let cameraX = 2 * x / screenWidth - 1;
         let rayDirection = new Vector2(direction.x + plane.x * cameraX, direction.y + plane.y * cameraX);
@@ -272,7 +276,7 @@ function main() {
             let green = wallTexture.data[pixelindex+1] / dimFactor;
             let blue = wallTexture.data[pixelindex+2] / dimFactor;
 
-            drawPixel(screen, x, y, screenWidth, red, green, blue);
+            drawPixel(screen, x, y, red, green, blue);
         }
     }
 
@@ -281,13 +285,24 @@ function main() {
     for (let x = 0; x < mapWidth; x += 1) {
         for (let y = 0; y < mapHeight; y += 1) {
             if (map[x][y] > 0)
-                drawRectangle(screen, (x * blockSize) + (screenWidth - mapWidth * blockSize - padding), y * blockSize + padding, blockSize, blockSize, screenWidth, 0, 255, 0);
+                drawRectangle(screen, (x * blockSize) + (screenWidth - mapWidth * blockSize - padding), y * blockSize + padding, blockSize, blockSize, 0, 255, 0);
             else
-                drawRectangle(screen, (x * blockSize) + (screenWidth - mapWidth * blockSize - padding), y * blockSize + padding, blockSize, blockSize, screenWidth, 0, 0, 0);
+                drawRectangle(screen, (x * blockSize) + (screenWidth - mapWidth * blockSize - padding), y * blockSize + padding, blockSize, blockSize, 0, 0, 0);
         }
     }
 
-    drawRectangle(screen, (int(position.x) * blockSize) + (screenWidth - mapWidth * blockSize - padding), int(position.y) * blockSize + padding, blockSize, blockSize, screenWidth, 255, 255, 255);
+    let adjustedPosition = new Vector2((position.x * blockSize) + (screenWidth - mapWidth * blockSize - padding),
+                                       position.y * blockSize + padding)
+    let leftAngle = new Vector2(((position.x + direction.x - plane.x) * blockSize) + (screenWidth - mapWidth * blockSize - padding),
+                                (position.y + direction.y - plane.y) * blockSize + padding)
+    let rightAngle = new Vector2(((position.x + direction.x + plane.x) * blockSize) + (screenWidth - mapWidth * blockSize - padding),
+                                 (position.y + direction.y + plane.y) * blockSize + padding)
+    
+    // drawRectangle(screen, adjustedPosition.x, adjustedPosition.y, blockSize, blockSize, 255, 255, 255);    
+    drawPixel(screen, adjustedPosition.x, adjustedPosition.y, 255, 255, 255);
+    drawCircle(screen, adjustedPosition.x, adjustedPosition.y, 3, 255, 255, 255);
+    drawLine(screen, new Vector2(adjustedPosition.x, adjustedPosition.y), leftAngle, 255, 255, 255);
+    drawLine(screen, new Vector2(adjustedPosition.x, adjustedPosition.y), rightAngle, 255, 255, 255);
 
     ctx.putImageData(screen, 0, 0);
 

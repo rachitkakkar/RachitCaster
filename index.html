@@ -14,11 +14,28 @@
         padding: 0;
         overflow-x: hidden; 
         overflow-y: hidden;
+        text-align: center;
+        font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+        background-color: #484a4a;
+        color: #f0f0f0;
     }
+
+    canvas {
+        top: 0;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        margin: auto;
+    }
+
 </style>
 
 <body>
-    <canvas id="viewport"></canvas>
+    <div>
+        <h1> RachitCaster </h1>
+        <p>by Rachit Kakkar</p>
+    </div>
+    <canvas id="viewport">Your browser doesn't support HTML5 Canvas</canvas>
     <script src="raycaster.js" defer></script>
 </body>
 </html>
