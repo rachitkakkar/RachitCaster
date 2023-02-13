@@ -1,6 +1,6 @@
 // Screen dimensions
-const screenWidth = 1000; //window.innerWidth;
-const screenHeight = 600; //window.innerHeight;
+const screenWidth = 1200; // window.innerWidth;
+const screenHeight = 600; // window.innerHeight;
 
 // Dealing with canvas
 var canvas = document.getElementById("viewport");
@@ -16,8 +16,32 @@ var lastUpdate;
 var deltaTime;
 
 // World representation
-const mapWidth = 24;
-const mapHeight = 24;
+function generateMaze(mapWidth, mapHeight) {
+    if (mapWidth !== mapHeight || mapWidth % 3 !== 0)
+        return "Error, must be equal or divisible by 3!"
+    
+    let cellCount = mapWidth / 3;
+    let cells = [];
+    for (let x = 0; x < cellCount; x++) {
+        line = []
+        for (let y = 0; y < cellCount; y++) {
+            line.push(0);
+        }
+
+        cells.push(line);
+    }
+
+    let stack = [[0, 0]];
+    cells[0][0] = 1;
+    let cellsVisited = 1;
+
+    while (cellsVisited < cellCount * cellCount) {
+        // todo
+    }
+
+    console.log(cells);
+}
+
 const map = 
 [
     [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
@@ -46,17 +70,29 @@ const map =
     [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
 ];
 
+const mapWidth = 24;
+const mapHeight = 24;
+// const map = generateMaze(mapWidth, mapHeight);
+generateMaze(mapWidth, mapHeight);
+
 // Minimap values
 const blockSize = 10;
 const padding = 5;
 
 // Player
-var position = new Vector2(22, 12);
+var position = new Vector2(10, 12);
 var direction = new Vector2(-1, 0);
 var plane = new Vector2(0, 0.66);
 
 var moveSpeed;
 var rotationSpeed;
+
+// Sprite structure
+function Sprite(x, y, texture) 
+{
+    this.x = x;
+    this.y = y;
+}
 
 // Input and key handling
 document.addEventListener("keydown", keyPush);
@@ -121,7 +157,7 @@ function main() {
     }
 
     // Use delta time to calculate a smooth movement speed based on framerate
-    moveSpeed = 10 * deltaTime;
+    moveSpeed = 12 * deltaTime;
     rotationSpeed = 5 * deltaTime;
     // moveSpeed = 45 * deltaTime;
     // rotationSpeed = 10 * deltaTime;
@@ -282,8 +318,8 @@ function main() {
 
 
     // Render minimap
-    for (let x = 0; x < mapWidth; x += 1) {
-        for (let y = 0; y < mapHeight; y += 1) {
+    for (let x = 0; x < mapWidth; x++) {
+        for (let y = 0; y < mapHeight; y++) {
             if (map[x][y] > 0)
                 drawRectangle(screen, (x * blockSize) + (screenWidth - mapWidth * blockSize - padding), y * blockSize + padding, blockSize, blockSize, 0, 255, 0);
             else
@@ -292,11 +328,11 @@ function main() {
     }
 
     let adjustedPosition = new Vector2((position.x * blockSize) + (screenWidth - mapWidth * blockSize - padding),
-                                       position.y * blockSize + padding)
+                                       position.y * blockSize + padding);
     let leftAngle = new Vector2(((position.x + direction.x - plane.x) * blockSize) + (screenWidth - mapWidth * blockSize - padding),
-                                (position.y + direction.y - plane.y) * blockSize + padding)
+                                (position.y + direction.y - plane.y) * blockSize + padding);
     let rightAngle = new Vector2(((position.x + direction.x + plane.x) * blockSize) + (screenWidth - mapWidth * blockSize - padding),
-                                 (position.y + direction.y + plane.y) * blockSize + padding)
+                                 (position.y + direction.y + plane.y) * blockSize + padding);
     
     // drawRectangle(screen, adjustedPosition.x, adjustedPosition.y, blockSize, blockSize, 255, 255, 255);    
     drawPixel(screen, adjustedPosition.x, adjustedPosition.y, 255, 255, 255);
@@ -328,6 +364,10 @@ loadImages(textureUrls).then(textures => {
 
     // ctx.drawImage(textures[2], 0, 0);
     // ceilingTexture = ctx.getImageData(0, 0, textureWidth, textureHeight);
+
+    spriteArray = [
+        Sprite(20.5, 11.5, '')
+    ]
     
     main();
 });
