@@ -17,31 +17,43 @@ var deltaTime;
 
 // World representation
 function generateMaze(mapWidth, mapHeight) {
-    if (mapWidth !== mapHeight || mapWidth % 3 !== 0)
-        return "Error, must be equal or divisible by 3!"
-    
-    let cellCount = mapWidth / 3;
-    let cells = [];
-    for (let x = 0; x < cellCount; x++) {
-        line = []
-        for (let y = 0; y < cellCount; y++) {
-            line.push(0);
+    // Generate maze
+    let maze = [];
+    for (let x = 0; x < mapWidth; x++) {
+        let row = [];
+        for (let y = 0; y < mapHeight; y++) {
+            row.push(1);
         }
-
-        cells.push(line);
+        maze.push(row);
     }
 
-    let stack = [[0, 0]];
-    cells[0][0] = 1;
-    let cellsVisited = 1;
+    for (let x = 1; x < mapWidth-1; x += 2) {
+        for (let y = 1; y < mapHeight-1; y += 2) {
+            maze[x][y] = 0;
+            let direction = Math.floor(Math.random() * 3);
 
-    while (cellsVisited < cellCount * cellCount) {
-        // todo
+            if (x === mapHeight-1)
+                maze[x][y+1] = 0;
+            else if (y === mapHeight-1 || (x === 1 && y === 1))
+                maze[x+1][y] = 0;
+            
+            else {
+                if (direction === 0)
+                    maze[x+1][y] = 0;
+                if (direction === 1)
+                    maze[x][y+1] = 0;
+                if (direction === 2) {
+                    maze[x+1][y] = 0;
+                    maze[x][y+1] = 0;
+                }
+            }
+        }
     }
 
-    console.log(cells);
+    return maze;
 }
 
+/*
 const map = 
 [
     [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
@@ -69,19 +81,19 @@ const map =
     [1,4,4,4,4,4,4,4,4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
     [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
 ];
+*/
 
 const mapWidth = 24;
 const mapHeight = 24;
-// const map = generateMaze(mapWidth, mapHeight);
-generateMaze(mapWidth, mapHeight);
+const map = generateMaze(mapWidth, mapHeight);
 
 // Minimap values
-const blockSize = 10;
-const padding = 5;
+const blockSize = Math.trunc(screenWidth / 120);
+const padding = Math.trunc(blockSize / 2);
 
 // Player
-var position = new Vector2(10, 12);
-var direction = new Vector2(-1, 0);
+var position = new Vector2(1.5, 1.5);
+var direction = new Vector2(1, 0);
 var plane = new Vector2(0, 0.66);
 
 var moveSpeed;
@@ -98,7 +110,7 @@ function Sprite(x, y, texture)
 document.addEventListener("keydown", keyPush);
 function keyPush(event) {
     switch(event.key) {
-        case "ArrowLeft":
+        case "ArrowRight":
             var newDirection = new Vector2();
             newDirection.x = direction.x * Math.cos(rotationSpeed) - direction.y * Math.sin(rotationSpeed);
             newDirection.y = direction.x * Math.sin(rotationSpeed) + direction.y * Math.cos(rotationSpeed);
@@ -110,7 +122,7 @@ function keyPush(event) {
             plane = newPlane;
             
             break;
-        case "ArrowRight":
+        case "ArrowLeft":
             var newDirection = new Vector2();
             newDirection.x = direction.x * Math.cos(-rotationSpeed) - direction.y * Math.sin(-rotationSpeed);
             newDirection.y = direction.x * Math.sin(-rotationSpeed) + direction.y * Math.cos(-rotationSpeed);
@@ -125,18 +137,18 @@ function keyPush(event) {
         case "ArrowUp":
             var newPosition = new Vector2(position.x + (direction.x * moveSpeed), position.y + (direction.y * moveSpeed));
             var checkPosition = new Vector2(position.x + (direction.x), position.y + (direction.y));
-            if (map[int(checkPosition.x)][int(position.y)] == 0)
+            if (map[int(checkPosition.x)][int(position.y)] === 0)
                 position.x = newPosition.x;
-            if (map[int(position.x)][int(checkPosition.y)] == 0) 
+            if (map[int(position.x)][int(checkPosition.y)] === 0) 
                 position.y = newPosition.y;
 
             break;
         case "ArrowDown":
             var newPosition = new Vector2(position.x - (direction.x * moveSpeed), position.y - (direction.y * moveSpeed));
             var checkPosition = new Vector2(position.x + (direction.x), position.y + (direction.y));
-            if (map[int(checkPosition.x)][int(position.y)] == 0)
+            if (map[int(checkPosition.x)][int(position.y)] === 0)
                 position.x = newPosition.x;
-            if (map[int(position.x)][int(checkPosition.y)] == 0) 
+            if (map[int(position.x)][int(checkPosition.y)] === 0) 
                 position.y = newPosition.y;
             break;
     }
@@ -209,8 +221,8 @@ function main() {
         let mapCoords = new Vector2(int(position.x), int(position.y));
         let sideDistance = new Vector2();
         let deltaDistance = new Vector2(
-            (rayDirection.x == 0) ? 1e+30 : Math.abs(1 / rayDirection.x),
-            (rayDirection.y == 0) ? 1e+30 : Math.abs(1 / rayDirection.y)
+            (rayDirection.x === 0) ? 1e+30 : Math.abs(1 / rayDirection.x),
+            (rayDirection.y === 0) ? 1e+30 : Math.abs(1 / rayDirection.y)
         );
 
         var step = new Vector2();
@@ -254,7 +266,7 @@ function main() {
         }
 
         let perpendicularWallDistance;
-        if (side == 0)
+        if (side === 0)
             perpendicularWallDistance = (sideDistance.x - deltaDistance.x);
         else
             perpendicularWallDistance = (sideDistance.y - deltaDistance.y);
@@ -268,7 +280,7 @@ function main() {
             drawEnd = screenHeight - 1;
 
         let wallX;
-        if (side == 0)
+        if (side === 0)
             wallX = position.y + perpendicularWallDistance * rayDirection.y;
         else
             wallX = position.x + perpendicularWallDistance * rayDirection.x;
@@ -276,9 +288,9 @@ function main() {
 
         let textureCoords = new Vector2();
         textureCoords.x = int(wallX * textureWidth);
-        if (side == 0 && rayDirection.x > 0)
+        if (side === 0 && rayDirection.x > 0)
             textureCoords.x = textureWidth - textureCoords.x - 1;
-        if (side == 1 && rayDirection.y < 0)
+        if (side === 1 && rayDirection.y < 0)
             textureCoords.x = textureWidth - textureCoords.x - 1;
 
         var step = 1.0 * textureHeight / lineHeight;
@@ -347,7 +359,7 @@ function main() {
     ctx.font = "22px Helvetica";
     ctx.fillStyle = "white";
     ctx.fillText("Use Arrow Keys to Move", 5, 25);
-    // ctx.fillText(`${(1 / deltaTime).toFixed(3)} FPS`, 5, 50);
+    ctx.fillText(`${(1 / deltaTime).toFixed(3)} FPS`, 5, 50);
 }
 
 // Textures
