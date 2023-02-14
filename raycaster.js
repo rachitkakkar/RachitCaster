@@ -16,38 +16,40 @@ var lastUpdate;
 var deltaTime;
 
 // World representation
-function generateMaze(mapWidth, mapHeight) {
-    if (mapWidth !== mapHeight || mapWidth % 2 !== 1)
+function generateMaze(mazeWidth, mazeHeight) {
+    if (mazeWidth !== mazeHeight || mazeHeight % 2 !== 1)
         return "Error: Size must be odd and square!"
 
     // Generate maze
     let maze = [];
-    for (let x = 0; x < mapWidth; x++) {
+    for (let x = 0; x < mazeWidth; x++) {
         let row = [];
-        for (let y = 0; y < mapHeight; y++) {
+        for (let y = 0; y < mazeHeight; y++) {
             row.push(1);
         }
         maze.push(row);
     }
 
-    for (let x = 1; x < mapWidth-1; x += 2) {
-        for (let y = 1; y < mapHeight-1; y += 2) {
+    for (let x = 1; x < mazeWidth-2; x += 2) {
+        for (let y = 1; y < mazeHeight-2; y += 2) {
             maze[x][y] = 0;
-            let direction = Math.floor(Math.random() * 2);
-
-            if (x === mapHeight-2)
-                maze[x][y+1] = 0;
-            else if (y === mapHeight-2 || (x === 1 && y === 1))
-                maze[x+1][y] = 0;
             
-            else {
-                if (direction === 0)
-                    maze[x+1][y] = 0;
-                if (direction === 1)
-                    maze[x][y+1] = 0;
-            }
+            let direction;
+            if (x === 1 && y === 1)
+                direction = 0;
+            else
+                direction = Math.floor(Math.random() * 2);
+            if (direction === 0)
+                maze[x+1][y] = 0;
+            if (direction === 1)
+                maze[x][y+1] = 0;
         }
     }
+
+    for (let y = 1; y < mazeHeight-1; y++)
+        maze[mazeWidth-2][y] = 0; 
+    for (let x = 1; x < mazeWidth-1; x++)
+        maze[x][mazeHeight-2] = 0; 
 
     return maze;
 }
