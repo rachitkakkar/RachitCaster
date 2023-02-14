@@ -17,6 +17,9 @@ var deltaTime;
 
 // World representation
 function generateMaze(mapWidth, mapHeight) {
+    if (mapWidth !== mapHeight || mapWidth % 2 !== 1)
+        return "Error: Size must be odd and square!"
+
     // Generate maze
     let maze = [];
     for (let x = 0; x < mapWidth; x++) {
@@ -30,11 +33,11 @@ function generateMaze(mapWidth, mapHeight) {
     for (let x = 1; x < mapWidth-1; x += 2) {
         for (let y = 1; y < mapHeight-1; y += 2) {
             maze[x][y] = 0;
-            let direction = Math.floor(Math.random() * 3);
+            let direction = Math.floor(Math.random() * 2);
 
-            if (x === mapHeight-1)
+            if (x === mapHeight-2)
                 maze[x][y+1] = 0;
-            else if (y === mapHeight-1 || (x === 1 && y === 1))
+            else if (y === mapHeight-2 || (x === 1 && y === 1))
                 maze[x+1][y] = 0;
             
             else {
@@ -42,10 +45,6 @@ function generateMaze(mapWidth, mapHeight) {
                     maze[x+1][y] = 0;
                 if (direction === 1)
                     maze[x][y+1] = 0;
-                if (direction === 2) {
-                    maze[x+1][y] = 0;
-                    maze[x][y+1] = 0;
-                }
             }
         }
     }
@@ -83,8 +82,8 @@ const map =
 ];
 */
 
-const mapWidth = 24;
-const mapHeight = 24;
+const mapWidth = 25;
+const mapHeight = 25;
 const map = generateMaze(mapWidth, mapHeight);
 
 // Minimap values
