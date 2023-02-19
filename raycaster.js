@@ -1,6 +1,6 @@
 // Screen dimensions
-const screenWidth = window.innerWidth;
-const screenHeight = window.innerHeight;
+const screenWidth = int(window.innerWidth * .75);
+const screenHeight = int(window.innerHeight * .70);
 
 // Dealing with canvas
 canvas.width = screenWidth;
@@ -106,7 +106,6 @@ var keyLeft = false;
 var keyUp = false;
 var keyDown = false;
 
-alert("Click to lock cursor!");
 document.addEventListener("keydown", keyPush);
 document.addEventListener("keyup", keyReleased);
 canvas.addEventListener("click", async () => {
