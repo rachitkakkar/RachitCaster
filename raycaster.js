@@ -1,6 +1,6 @@
 // Screen dimensions
 const screenWidth = int(window.innerWidth * .75);
-const screenHeight = int(window.innerHeight * .70);
+const screenHeight = int(window.innerHeight * .75);
 
 // Dealing with canvas
 canvas.width = screenWidth;
@@ -428,11 +428,10 @@ function main() {
 
     ctx.putImageData(screen, 0, 0);
 
-    window.requestAnimationFrame(main);
-
     ctx.font = "22px Helvetica";
     ctx.fillStyle = "white";
     ctx.fillText(`${(1 / deltaTime).toFixed(3)} FPS`, 5, 25);
+    requestAnimationFrame(main);
 }
 
 // Textures
@@ -454,5 +453,5 @@ loadImages(textureUrls).then(textures => {
         Sprite(20.5, 11.5, '')
     ]
     
-    main();
+    requestAnimationFrame(main);
 });
