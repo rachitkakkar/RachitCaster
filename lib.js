@@ -36,7 +36,7 @@ function drawPixel(screen, x, y, red, green, blue) {
     screen.data[pixelindex] = red;
     screen.data[pixelindex+1] = green;
     screen.data[pixelindex+2] = blue;
-    screen.data[pixelindex+3] = 255;
+    screen.data[pixelindex+3] = 0;
 }
 
 /*
