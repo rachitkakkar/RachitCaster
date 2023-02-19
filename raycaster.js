@@ -109,6 +109,8 @@ document.addEventListener("keydown", keyPush);
 document.addEventListener("keyup", keyReleased);
 
 function keyPush(event) {
+    if (event.repeat)
+        return
     switch(event.key) {
         case "ArrowRight":
             keyRight = true;
@@ -127,6 +129,8 @@ function keyPush(event) {
 }
 
 function keyReleased(event) {
+    if (event.repeat)
+        return
     switch(event.key) {
         case "ArrowRight":
             keyRight = false;
