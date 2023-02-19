@@ -88,8 +88,9 @@ const mapHeight = 25;
 const map = generateMaze(mapWidth, mapHeight);
 
 // Minimap values
-const blockSize = Math.trunc(screenWidth / 120);
-const padding = Math.trunc(blockSize / 2);
+const blockSize = int(screenWidth / 120);
+const padding = int(blockSize / 2);
+const playerSize = int(padding * 3/5);
 
 // Player
 const MOVE_SPEED = 3;
@@ -394,7 +395,7 @@ function main() {
     
     // drawRectangle(screen, adjustedPosition.x, adjustedPosition.y, blockSize, blockSize, 255, 255, 255);    
     drawPixel(screen, adjustedPosition.x, adjustedPosition.y, 255, 255, 255);
-    drawCircle(screen, adjustedPosition.x, adjustedPosition.y, 3, 255, 255, 255);
+    drawCircle(screen, adjustedPosition.x, adjustedPosition.y, playerSize, 255, 255, 255);
     drawLine(screen, new Vector2(adjustedPosition.x, adjustedPosition.y), leftAngle, 255, 255, 255);
     drawLine(screen, new Vector2(adjustedPosition.x, adjustedPosition.y), rightAngle, 255, 255, 255);
 
