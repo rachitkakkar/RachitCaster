@@ -1,9 +1,8 @@
 // Screen dimensions
-const screenWidth = 1200; // window.innerWidth;
-const screenHeight = 600; // window.innerHeight;
+const screenWidth = window.innerWidth;
+const screenHeight = window.innerHeight;
 
 // Dealing with canvas
-var canvas = document.getElementById("viewport");
 canvas.width = screenWidth;
 canvas.height = screenHeight;
 
@@ -93,66 +92,108 @@ const blockSize = Math.trunc(screenWidth / 120);
 const padding = Math.trunc(blockSize / 2);
 
 // Player
+const MOVE_SPEED = 3;
+const ROTATION_SPEED = 1.5;
+
 var position = new Vector2(1.5, 1.5);
 var direction = new Vector2(1, 0);
 var plane = new Vector2(0, 0.66);
 
-var moveSpeed;
-var rotationSpeed;
+// Input and key handling
+var keyRight = false;
+var keyLeft = false;
+var keyUp = false;
+var keyDown = false;
+
+document.addEventListener("keydown", keyPush);
+document.addEventListener("keyup", keyReleased);
+
+function keyPush(event) {
+    switch(event.key) {
+        case "ArrowRight":
+            keyRight = true;
+            break;
+        case "ArrowLeft":
+            keyLeft = true;
+            break;
+
+        case "ArrowUp":
+            keyUp = true;
+            break;
+        case "ArrowDown":
+            keyDown = true;
+            break;
+    }
+}
+
+function keyReleased(event) {
+    switch(event.key) {
+        case "ArrowRight":
+            keyRight = false;
+            break;
+        case "ArrowLeft":
+            keyLeft = false;
+            break;
+
+        case "ArrowUp":
+            keyUp = false;
+            break;
+        case "ArrowDown":
+            keyDown = false;
+            break;
+    }
+}
+
+// Movement
+function movePlayer(moveSpeed, rotationSpeed) {
+    if (keyRight) {
+        var newDirection = new Vector2();
+        newDirection.x = direction.x * Math.cos(rotationSpeed) - direction.y * Math.sin(rotationSpeed);
+        newDirection.y = direction.x * Math.sin(rotationSpeed) + direction.y * Math.cos(rotationSpeed);
+        direction = newDirection;
+
+        var newPlane = new Vector2();
+        newPlane.x = plane.x * Math.cos(rotationSpeed) - plane.y * Math.sin(rotationSpeed);
+        newPlane.y = plane.x * Math.sin(rotationSpeed) + plane.y * Math.cos(rotationSpeed);
+        plane = newPlane;
+    }
+
+    if (keyLeft) {
+        var newDirection = new Vector2();
+        newDirection.x = direction.x * Math.cos(-rotationSpeed) - direction.y * Math.sin(-rotationSpeed);
+        newDirection.y = direction.x * Math.sin(-rotationSpeed) + direction.y * Math.cos(-rotationSpeed);
+        direction = newDirection;
+
+        var newPlane = new Vector2();
+        newPlane.x = plane.x * Math.cos(-rotationSpeed) - plane.y * Math.sin(-rotationSpeed);
+        newPlane.y = plane.x * Math.sin(-rotationSpeed) + plane.y * Math.cos(-rotationSpeed);
+        plane = newPlane;
+    }
+
+    if (keyUp) {
+        var newPosition = new Vector2(position.x + (direction.x * moveSpeed), position.y + (direction.y * moveSpeed));
+        var checkPosition = new Vector2(position.x + (direction.x), position.y + (direction.y));
+        if (map[int(checkPosition.x)][int(position.y)] === 0)
+            position.x = newPosition.x;
+        if (map[int(position.x)][int(checkPosition.y)] === 0) 
+            position.y = newPosition.y;
+    }
+
+    if (keyDown) {
+        var newPosition = new Vector2(position.x - (direction.x * moveSpeed), position.y - (direction.y * moveSpeed));
+        var checkPosition = new Vector2(position.x + (direction.x), position.y + (direction.y));
+        if (map[int(checkPosition.x)][int(position.y)] === 0)
+            position.x = newPosition.x;
+        if (map[int(position.x)][int(checkPosition.y)] === 0) 
+            position.y = newPosition.y;
+    }
+}
 
 // Sprite structure
 function Sprite(x, y, texture) 
 {
     this.x = x;
     this.y = y;
-}
-
-// Input and key handling
-document.addEventListener("keydown", keyPush);
-function keyPush(event) {
-    switch(event.key) {
-        case "ArrowRight":
-            var newDirection = new Vector2();
-            newDirection.x = direction.x * Math.cos(rotationSpeed) - direction.y * Math.sin(rotationSpeed);
-            newDirection.y = direction.x * Math.sin(rotationSpeed) + direction.y * Math.cos(rotationSpeed);
-            direction = newDirection;
-
-            var newPlane = new Vector2();
-            newPlane.x = plane.x * Math.cos(rotationSpeed) - plane.y * Math.sin(rotationSpeed);
-            newPlane.y = plane.x * Math.sin(rotationSpeed) + plane.y * Math.cos(rotationSpeed);
-            plane = newPlane;
-            
-            break;
-        case "ArrowLeft":
-            var newDirection = new Vector2();
-            newDirection.x = direction.x * Math.cos(-rotationSpeed) - direction.y * Math.sin(-rotationSpeed);
-            newDirection.y = direction.x * Math.sin(-rotationSpeed) + direction.y * Math.cos(-rotationSpeed);
-            direction = newDirection;
-
-            var newPlane = new Vector2();
-            newPlane.x = plane.x * Math.cos(-rotationSpeed) - plane.y * Math.sin(-rotationSpeed);
-            newPlane.y = plane.x * Math.sin(-rotationSpeed) + plane.y * Math.cos(-rotationSpeed);
-            plane = newPlane;
-
-            break;
-        case "ArrowUp":
-            var newPosition = new Vector2(position.x + (direction.x * moveSpeed), position.y + (direction.y * moveSpeed));
-            var checkPosition = new Vector2(position.x + (direction.x), position.y + (direction.y));
-            if (map[int(checkPosition.x)][int(position.y)] === 0)
-                position.x = newPosition.x;
-            if (map[int(position.x)][int(checkPosition.y)] === 0) 
-                position.y = newPosition.y;
-
-            break;
-        case "ArrowDown":
-            var newPosition = new Vector2(position.x - (direction.x * moveSpeed), position.y - (direction.y * moveSpeed));
-            var checkPosition = new Vector2(position.x + (direction.x), position.y + (direction.y));
-            if (map[int(checkPosition.x)][int(position.y)] === 0)
-                position.x = newPosition.x;
-            if (map[int(position.x)][int(checkPosition.y)] === 0) 
-                position.y = newPosition.y;
-            break;
-    }
 }
 
 // Main loop
@@ -170,11 +211,11 @@ function main() {
     }
 
     // Use delta time to calculate a smooth movement speed based on framerate
-    moveSpeed = 12 * deltaTime;
-    rotationSpeed = 5 * deltaTime;
-    // moveSpeed = 45 * deltaTime;
-    // rotationSpeed = 10 * deltaTime;
+    let moveSpeed = MOVE_SPEED * deltaTime;
+    let rotationSpeed = ROTATION_SPEED * deltaTime;    var newPosition = new Vector2(position.x + (direction.x * moveSpeed), position.y + (direction.y * moveSpeed));
+    movePlayer(moveSpeed, rotationSpeed);
     
+    // Draw floor and ceiling
     let leftRayDirection = new Vector2(direction.x - plane.x, direction.y - plane.y);
     let rightRayDirection = new Vector2(direction.x + plane.x, direction.y + plane.y);
     for (let y = 0; y < screenHeight; y++) {
@@ -360,7 +401,7 @@ function main() {
     ctx.font = "22px Helvetica";
     ctx.fillStyle = "white";
     ctx.fillText("Use Arrow Keys to Move", 5, 25);
-    ctx.fillText(`${(1 / deltaTime).toFixed(3)} FPS`, 5, 50);
+    // ctx.fillText(`${(1 / deltaTime).toFixed(3)} FPS`, 5, 50);
 }
 
 // Textures
