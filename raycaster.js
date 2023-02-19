@@ -1,4 +1,5 @@
 // Screen dimensions
+let speed = false;
 const screenWidth = window.innerWidth;
 const screenHeight = window.innerHeight;
 
@@ -126,6 +127,9 @@ function keyPush(event) {
         case "ArrowDown":
             keyDown = true;
             break;
+        case "s":
+            speed = true;
+            break;
     }
 }
 
@@ -145,6 +149,9 @@ function keyReleased(event) {
             break;
         case "ArrowDown":
             keyDown = false;
+            break;
+        case "s":
+            speed = false;
             break;
     }
 }
@@ -221,45 +228,49 @@ function main() {
     movePlayer(moveSpeed, rotationSpeed);
     
     // Draw floor and ceiling
-    let leftRayDirection = new Vector2(direction.x - plane.x, direction.y - plane.y);
-    let rightRayDirection = new Vector2(direction.x + plane.x, direction.y + plane.y);
-    for (let y = 0; y < screenHeight; y++) {
-        let p = y - screenHeight / 2;
-        let posZ = 0.5 * screenHeight;
-        let rowDistance = posZ / p;
+    if (!speed) {
+        let leftRayDirection = new Vector2(direction.x - plane.x, direction.y - plane.y);
+        let rightRayDirection = new Vector2(direction.x + plane.x, direction.y + plane.y);
+        for (let y = 0; y < screenHeight; y++) {
+            let p = y - screenHeight / 2;
+            let posZ = 0.5 * screenHeight;
+            let rowDistance = posZ / p;
 
-        let floorStep = new Vector2(rowDistance * (rightRayDirection.x - leftRayDirection.x) / screenWidth, 
-                                rowDistance * (rightRayDirection.y - leftRayDirection.y) / screenWidth); 
-        let floor = new Vector2(position.x + rowDistance * leftRayDirection.x, position.y + rowDistance * leftRayDirection.y);
+            let floorStep = new Vector2(rowDistance * (rightRayDirection.x - leftRayDirection.x) / screenWidth, 
+                                    rowDistance * (rightRayDirection.y - leftRayDirection.y) / screenWidth); 
+            let floor = new Vector2(position.x + rowDistance * leftRayDirection.x, position.y + rowDistance * leftRayDirection.y);
 
-        let dimFactor = 0.8 + (((screenHeight - y - 1) / 5) * 0.01);
-        for (let x = 0; x < screenWidth; x++) {
-            let cell = new Vector2(int(floor.x), int(floor.y));
-            let textureCoords = new Vector2(int(textureWidth * (floor.x - cell.x)) & (textureWidth - 1),
-                                            int(textureHeight * (floor.y - cell.y)) & (textureHeight - 1));
+            let dimFactor = 0.8 + (((screenHeight - y - 1) / 5) * 0.01);
+            for (let x = 0; x < screenWidth; x++) {
+                let cell = new Vector2(int(floor.x), int(floor.y));
+                let textureCoords = new Vector2(int(textureWidth * (floor.x - cell.x)) & (textureWidth - 1),
+                                                int(textureHeight * (floor.y - cell.y)) & (textureHeight - 1));
 
-            floor.x += floorStep.x;
-            floor.y += floorStep.y;
-            
-            let pixelindex = (textureCoords.y * textureWidth + textureCoords.x) * 4;
-            let red = groundTexture.data[pixelindex] / dimFactor;
-            let green = groundTexture.data[pixelindex+1] / dimFactor;
-            let blue = groundTexture.data[pixelindex+2] / dimFactor;
+                floor.x += floorStep.x;
+                floor.y += floorStep.y;
+                
+                let pixelindex = (textureCoords.y * textureWidth + textureCoords.x) * 4;
+                let red = groundTexture.data[pixelindex] / dimFactor;
+                let green = groundTexture.data[pixelindex+1] / dimFactor;
+                let blue = groundTexture.data[pixelindex+2] / dimFactor;
 
-            drawPixel(screen, x, y, red, green, blue);
-            // drawPixel(screen, x, y, 72 / dimFactor, 171 / dimFactor, 62 / dimFactor);
-            
-            // red = ceilingTexture.data[pixelindex] / dimFactor;
-            // green = ceilingTexture.data[pixelindex+1] / dimFactor;
-            // blue = ceilingTexture.data[pixelindex+2] / dimFactor;
+                drawPixel(screen, x, y, red, green, blue);
+                // drawPixel(screen, x, y, 72 / dimFactor, 171 / dimFactor, 62 / dimFactor);
+                
+                // red = ceilingTexture.data[pixelindex] / dimFactor;
+                // green = ceilingTexture.data[pixelindex+1] / dimFactor;
+                // blue = ceilingTexture.data[pixelindex+2] / dimFactor;
 
-            // drawPixel(screen, x, screenHeight - y - 1, red, green, blue);
-            drawPixel(screen, x, screenHeight - y - 1, 0 / dimFactor, 191 / dimFactor, 255 / dimFactor);
+                // drawPixel(screen, x, screenHeight - y - 1, red, green, blue);
+                drawPixel(screen, x, screenHeight - y - 1, 0 / dimFactor, 191 / dimFactor, 255 / dimFactor);
+            }
         }
     }
 
-    // drawRectangle(screen, 0, 0, screenWidth, screenHeight / 2, 0, 191, 255);
-    // drawRectangle(screen, 0, screenHeight / 2, screenWidth, screenHeight, 72, 171, 62);
+    else {
+        drawRectangle(screen, 0, 0, screenWidth, screenHeight / 2, 0, 191, 255);
+        drawRectangle(screen, 0, screenHeight / 2, screenWidth, screenHeight, 72, 171, 62);
+    }
     
     for (let x = 0; x < screenWidth; x++) {
         let cameraX = 2 * x / screenWidth - 1;
@@ -406,7 +417,9 @@ function main() {
     ctx.font = "22px Helvetica";
     ctx.fillStyle = "white";
     ctx.fillText("Use Arrow Keys to Move", 5, 25);
-    // ctx.fillText(`${(1 / deltaTime).toFixed(3)} FPS`, 5, 50);
+    ctx.fillText('Hold "s" to remove costly floor and ceiling calculations (massive speedup!)', 5, 50);
+    if (speed)
+        ctx.fillText(`${(1 / deltaTime).toFixed(3)} FPS`, 5, 75);
 }
 
 // Textures
