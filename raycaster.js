@@ -1,5 +1,4 @@
 // Screen dimensions
-let speed = false;
 const screenWidth = window.innerWidth;
 const screenHeight = window.innerHeight;
 
@@ -95,7 +94,7 @@ const playerSize = int(padding * 3/5);
 
 // Player
 const MOVE_SPEED = 3;
-const ROTATION_SPEED = 1.25;
+// const ROTATION_SPEED = 1.25;
 
 var position = new Vector2(1.5, 1.5);
 var direction = new Vector2(1, 0);
@@ -107,28 +106,48 @@ var keyLeft = false;
 var keyUp = false;
 var keyDown = false;
 
+alert("Click to lock cursor!");
 document.addEventListener("keydown", keyPush);
 document.addEventListener("keyup", keyReleased);
+canvas.addEventListener("click", async () => {
+    if(!document.pointerLockElement) {
+      await canvas.requestPointerLock({
+        unadjustedMovement: true,
+      });
+    }
+});
+document.addEventListener("pointerlockchange", lockChangeAlert, false);
+
+function lockChangeAlert() {
+    if (document.pointerLockElement === canvas) {
+        console.log('The pointer lock status is now locked');
+        document.addEventListener("mousemove", rotatePlayer, false);
+    } else {
+        console.log('The pointer lock status is now unlocked');
+        document.removeEventListener("mousemove", rotatePlayer, false);
+    }
+}  
 
 function keyPush(event) {
     if (event.repeat)
         return
     switch(event.key) {
         case "ArrowRight":
+        case "d":
             keyRight = true;
             break;
         case "ArrowLeft":
+        case "a":
             keyLeft = true;
             break;
 
         case "ArrowUp":
+        case "w":
             keyUp = true;
             break;
         case "ArrowDown":
-            keyDown = true;
-            break;
         case "s":
-            speed = true;
+            keyDown = true;
             break;
     }
 }
@@ -138,67 +157,68 @@ function keyReleased(event) {
         return
     switch(event.key) {
         case "ArrowRight":
+        case "d":
             keyRight = false;
             break;
         case "ArrowLeft":
+        case "a":
             keyLeft = false;
             break;
 
         case "ArrowUp":
+        case "w":
             keyUp = false;
             break;
         case "ArrowDown":
-            keyDown = false;
-            break;
         case "s":
-            speed = false;
+            keyDown = false;
             break;
     }
 }
 
 // Movement
-function movePlayer(moveSpeed, rotationSpeed) {
+function movePlayer(moveSpeed) {
     if (keyRight) {
-        var newDirection = new Vector2();
-        newDirection.x = direction.x * Math.cos(rotationSpeed) - direction.y * Math.sin(rotationSpeed);
-        newDirection.y = direction.x * Math.sin(rotationSpeed) + direction.y * Math.cos(rotationSpeed);
-        direction = newDirection;
 
-        var newPlane = new Vector2();
-        newPlane.x = plane.x * Math.cos(rotationSpeed) - plane.y * Math.sin(rotationSpeed);
-        newPlane.y = plane.x * Math.sin(rotationSpeed) + plane.y * Math.cos(rotationSpeed);
-        plane = newPlane;
     }
 
     if (keyLeft) {
-        var newDirection = new Vector2();
-        newDirection.x = direction.x * Math.cos(-rotationSpeed) - direction.y * Math.sin(-rotationSpeed);
-        newDirection.y = direction.x * Math.sin(-rotationSpeed) + direction.y * Math.cos(-rotationSpeed);
-        direction = newDirection;
 
-        var newPlane = new Vector2();
-        newPlane.x = plane.x * Math.cos(-rotationSpeed) - plane.y * Math.sin(-rotationSpeed);
-        newPlane.y = plane.x * Math.sin(-rotationSpeed) + plane.y * Math.cos(-rotationSpeed);
-        plane = newPlane;
     }
 
     if (keyUp) {
         var newPosition = new Vector2(position.x + (direction.x * moveSpeed), position.y + (direction.y * moveSpeed));
-        var checkPosition = new Vector2(position.x + (direction.x), position.y + (direction.y));
-        if (map[int(checkPosition.x)][int(position.y)] === 0)
+        if (map[int(newPosition.x)][int(position.y)] === 0)
             position.x = newPosition.x;
-        if (map[int(position.x)][int(checkPosition.y)] === 0) 
+        if (map[int(position.x)][int(newPosition.y)] === 0) 
             position.y = newPosition.y;
     }
 
     if (keyDown) {
         var newPosition = new Vector2(position.x - (direction.x * moveSpeed), position.y - (direction.y * moveSpeed));
-        var checkPosition = new Vector2(position.x + (direction.x), position.y + (direction.y));
-        if (map[int(checkPosition.x)][int(position.y)] === 0)
+        if (map[int(newPosition.x)][int(position.y)] === 0)
             position.x = newPosition.x;
-        if (map[int(position.x)][int(checkPosition.y)] === 0) 
+        if (map[int(position.x)][int(newPosition.y)] === 0) 
             position.y = newPosition.y;
     }
+}
+
+function rotatePlayer(event) {
+    let differenceX = event.movementX / screenWidth;
+    let rotationSpeed = (differenceX * 45) * deltaTime;
+
+    var newDirection = new Vector2();
+    newDirection.x = direction.x * Math.cos(rotationSpeed) - direction.y * Math.sin(rotationSpeed);
+    newDirection.y = direction.x * Math.sin(rotationSpeed) + direction.y * Math.cos(rotationSpeed);
+    direction = newDirection;
+
+    var newPlane = new Vector2();
+    newPlane.x = plane.x * Math.cos(rotationSpeed) - plane.y * Math.sin(rotationSpeed);
+    newPlane.y = plane.x * Math.sin(rotationSpeed) + plane.y * Math.cos(rotationSpeed);
+    plane = newPlane;
+
+    lastMouseX = event.clientX;
+    lastMouseY = event.clientY;
 }
 
 // Sprite structure
@@ -224,53 +244,50 @@ function main() {
 
     // Use delta time to calculate a smooth movement speed based on framerate
     let moveSpeed = MOVE_SPEED * deltaTime;
-    let rotationSpeed = ROTATION_SPEED * deltaTime;    var newPosition = new Vector2(position.x + (direction.x * moveSpeed), position.y + (direction.y * moveSpeed));
-    movePlayer(moveSpeed, rotationSpeed);
+    // let rotationSpeed = ROTATION_SPEED * deltaTime;
+    movePlayer(moveSpeed);
     
     // Draw floor and ceiling
-    if (!speed) {
-        let leftRayDirection = new Vector2(direction.x - plane.x, direction.y - plane.y);
-        let rightRayDirection = new Vector2(direction.x + plane.x, direction.y + plane.y);
-        for (let y = 0; y < screenHeight; y++) {
-            let p = y - screenHeight / 2;
-            let posZ = 0.5 * screenHeight;
-            let rowDistance = posZ / p;
+    let leftRayDirection = new Vector2(direction.x - plane.x, direction.y - plane.y);
+    let rightRayDirection = new Vector2(direction.x + plane.x, direction.y + plane.y);
+    for (let y = 0; y < screenHeight; y++) {
+        let p = y - screenHeight / 2;
+        let posZ = 0.5 * screenHeight;
+        let rowDistance = posZ / p;
 
-            let floorStep = new Vector2(rowDistance * (rightRayDirection.x - leftRayDirection.x) / screenWidth, 
-                                    rowDistance * (rightRayDirection.y - leftRayDirection.y) / screenWidth); 
-            let floor = new Vector2(position.x + rowDistance * leftRayDirection.x, position.y + rowDistance * leftRayDirection.y);
+        let floorStep = new Vector2(rowDistance * (rightRayDirection.x - leftRayDirection.x) / screenWidth, 
+                                rowDistance * (rightRayDirection.y - leftRayDirection.y) / screenWidth); 
+        let floor = new Vector2(position.x + rowDistance * leftRayDirection.x, position.y + rowDistance * leftRayDirection.y);
 
-            let dimFactor = 0.8 + (((screenHeight - y - 1) / 5) * 0.01);
-            for (let x = 0; x < screenWidth; x++) {
-                let cell = new Vector2(int(floor.x), int(floor.y));
-                let textureCoords = new Vector2(int(textureWidth * (floor.x - cell.x)) & (textureWidth - 1),
-                                                int(textureHeight * (floor.y - cell.y)) & (textureHeight - 1));
+        let dimFactor = 0.8 + (((screenHeight - y - 1) / 5) * 0.01);
+        for (let x = 0; x < screenWidth; x++) {
+            let cell = new Vector2(int(floor.x), int(floor.y));
+            let textureCoords = new Vector2(int(textureWidth * (floor.x - cell.x)) & (textureWidth - 1),
+                                            int(textureHeight * (floor.y - cell.y)) & (textureHeight - 1));
 
-                floor.x += floorStep.x;
-                floor.y += floorStep.y;
-                
-                let pixelindex = (textureCoords.y * textureWidth + textureCoords.x) * 4;
-                let red = groundTexture.data[pixelindex] / dimFactor;
-                let green = groundTexture.data[pixelindex+1] / dimFactor;
-                let blue = groundTexture.data[pixelindex+2] / dimFactor;
+            floor.x += floorStep.x;
+            floor.y += floorStep.y;
+            
+            let pixelindex = (textureCoords.y * textureWidth + textureCoords.x) * 4;
+            let red = groundTexture.data[pixelindex] / dimFactor;
+            let green = groundTexture.data[pixelindex+1] / dimFactor;
+            let blue = groundTexture.data[pixelindex+2] / dimFactor;
 
-                drawPixel(screen, x, y, red, green, blue);
-                // drawPixel(screen, x, y, 72 / dimFactor, 171 / dimFactor, 62 / dimFactor);
-                
-                // red = ceilingTexture.data[pixelindex] / dimFactor;
-                // green = ceilingTexture.data[pixelindex+1] / dimFactor;
-                // blue = ceilingTexture.data[pixelindex+2] / dimFactor;
+            drawPixel(screen, x, y, red, green, blue);
+            // drawPixel(screen, x, y, 72 / dimFactor, 171 / dimFactor, 62 / dimFactor);
+            
+            // red = ceilingTexture.data[pixelindex] / dimFactor;
+            // green = ceilingTexture.data[pixelindex+1] / dimFactor;
+            // blue = ceilingTexture.data[pixelindex+2] / dimFactor;
 
-                // drawPixel(screen, x, screenHeight - y - 1, red, green, blue);
-                drawPixel(screen, x, screenHeight - y - 1, 0 / dimFactor, 191 / dimFactor, 255 / dimFactor);
-            }
+            // drawPixel(screen, x, screenHeight - y - 1, red, green, blue);
+            drawPixel(screen, x, screenHeight - y - 1, 0 / dimFactor, 191 / dimFactor, 255 / dimFactor);
         }
     }
 
-    else {
-        drawRectangle(screen, 0, 0, screenWidth, screenHeight / 2, 0, 191, 255);
-        drawRectangle(screen, 0, screenHeight / 2, screenWidth, screenHeight, 72, 171, 62);
-    }
+    // drawRectangle(screen, 0, 0, screenWidth, screenHeight / 2, 0, 191, 255);
+    // drawRectangle(screen, 0, screenHeight / 2, screenWidth, screenHeight, 72, 171, 62);
+
     
     for (let x = 0; x < screenWidth; x++) {
         let cameraX = 2 * x / screenWidth - 1;
@@ -416,10 +433,7 @@ function main() {
 
     ctx.font = "22px Helvetica";
     ctx.fillStyle = "white";
-    ctx.fillText("Use Arrow Keys to Move", 5, 25);
-    ctx.fillText('Hold "s" to remove costly floor and ceiling calculations (massive speedup!)', 5, 50);
-    if (speed)
-        ctx.fillText(`${(1 / deltaTime).toFixed(3)} FPS`, 5, 75);
+    ctx.fillText(`${(1 / deltaTime).toFixed(3)} FPS`, 5, 25);
 }
 
 // Textures
