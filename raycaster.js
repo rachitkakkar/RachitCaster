@@ -1,21 +1,14 @@
 // Screen dimensions
-const screenWidth = window.innerWidth;
-const screenHeight = window.innerHeight;
+const screenWidth = 1200; // window.innerWidth;
+const screenHeight = 600; // window.innerHeight;
 
 // Dealing with canvas
-var canvas = document.getElementById("main-layer");
+var canvas = document.getElementById("viewport");
 canvas.width = screenWidth;
 canvas.height = screenHeight;
 
 var ctx = canvas.getContext("2d");
 var screen = ctx.createImageData(screenWidth, screenHeight);
-
-var backgroundCanvas = document.getElementById("background-layer");
-backgroundCanvas.width = screenWidth;
-backgroundCanvas.height = screenHeight;
-
-var bgctx = backgroundCanvas.getContext("2d");
-var bgscreen = bgctx.createImageData(screenWidth, screenHeight);
 
 // Delta time
 var now;
@@ -162,8 +155,26 @@ function keyPush(event) {
     }
 }
 
-// Generate background (only happens once)
-function generateBackground() {
+// Main loop
+function main() {
+    // Calculate delta time
+    now = Date.now();
+    deltaTime = (now - lastUpdate) / 1000;
+    lastUpdate = now;
+
+    ctx.putImageData(screen, 0, 0);
+    for (let i = 0; i < screenWidth; i++) {
+        for (let j = 0; j < screenHeight; j++) {
+            drawPixel(screen, i, j, 0, 0, 0);
+        }
+    }
+
+    // Use delta time to calculate a smooth movement speed based on framerate
+    moveSpeed = 12 * deltaTime;
+    rotationSpeed = 5 * deltaTime;
+    // moveSpeed = 45 * deltaTime;
+    // rotationSpeed = 10 * deltaTime;
+    
     let leftRayDirection = new Vector2(direction.x - plane.x, direction.y - plane.y);
     let rightRayDirection = new Vector2(direction.x + plane.x, direction.y + plane.y);
     for (let y = 0; y < screenHeight; y++) {
@@ -189,7 +200,7 @@ function generateBackground() {
             let green = groundTexture.data[pixelindex+1] / dimFactor;
             let blue = groundTexture.data[pixelindex+2] / dimFactor;
 
-            drawPixel(bgscreen, x, y, red, green, blue);
+            drawPixel(screen, x, y, red, green, blue);
             // drawPixel(screen, x, y, 72 / dimFactor, 171 / dimFactor, 62 / dimFactor);
             
             // red = ceilingTexture.data[pixelindex] / dimFactor;
@@ -197,29 +208,13 @@ function generateBackground() {
             // blue = ceilingTexture.data[pixelindex+2] / dimFactor;
 
             // drawPixel(screen, x, screenHeight - y - 1, red, green, blue);
-            drawPixel(bgscreen, x, screenHeight - y - 1, 0 / dimFactor, 191 / dimFactor, 255 / dimFactor);
+            drawPixel(screen, x, screenHeight - y - 1, 0 / dimFactor, 191 / dimFactor, 255 / dimFactor);
         }
     }
-}
-
-// Main loop
-function main() {
-    // Calculate delta time
-    now = Date.now();
-    deltaTime = (now - lastUpdate) / 1000;
-    lastUpdate = now;
-    
-    // Use delta time to calculate a smooth movement speed based on framerate
-    moveSpeed = 12 * deltaTime;
-    rotationSpeed = 5 * deltaTime;
-    // moveSpeed = 45 * deltaTime;
-    // rotationSpeed = 10 * deltaTime;
 
     // drawRectangle(screen, 0, 0, screenWidth, screenHeight / 2, 0, 191, 255);
     // drawRectangle(screen, 0, screenHeight / 2, screenWidth, screenHeight, 72, 171, 62);
     
-    screen.data = bgscreen.data;
-
     for (let x = 0; x < screenWidth; x++) {
         let cameraX = 2 * x / screenWidth - 1;
         let rayDirection = new Vector2(direction.x + plane.x * cameraX, direction.y + plane.y * cameraX);
@@ -387,6 +382,5 @@ loadImages(textureUrls).then(textures => {
         Sprite(20.5, 11.5, '')
     ]
     
-    generateBackground();
     main();
 });
