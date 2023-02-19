@@ -93,7 +93,7 @@ const padding = Math.trunc(blockSize / 2);
 
 // Player
 const MOVE_SPEED = 3;
-const ROTATION_SPEED = 1.5;
+const ROTATION_SPEED = 1.25;
 
 var position = new Vector2(1.5, 1.5);
 var direction = new Vector2(1, 0);
