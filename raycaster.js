@@ -246,7 +246,7 @@ function main() {
     // let rotationSpeed = ROTATION_SPEED * deltaTime;
     movePlayer(moveSpeed);
     
-    // Draw floor and ceiling
+    // Draw floor and ceiling (Horizontally)
     let leftRayDirection = new Vector2(direction.x - plane.x, direction.y - plane.y);
     let rightRayDirection = new Vector2(direction.x + plane.x, direction.y + plane.y);
     for (let y = 0; y < screenHeight; y++) {
@@ -259,6 +259,7 @@ function main() {
         let floor = new Vector2(position.x + rowDistance * leftRayDirection.x, position.y + rowDistance * leftRayDirection.y);
 
         let dimFactor = 0.8 + (((screenHeight - y - 1) / 5) * 0.01);
+
         for (let x = 0; x < screenWidth; x++) {
             let cell = new Vector2(int(floor.x), int(floor.y));
             let textureCoords = new Vector2(int(textureWidth * (floor.x - cell.x)) & (textureWidth - 1),
@@ -400,8 +401,51 @@ function main() {
 
             drawPixel(screen, x, y, red, green, blue);
         }
-    }
 
+        // Draw Wall and Ceiling (Vertically)
+        /*
+        let floorWallPos = new Vector2();
+        if(side == 0 && rayDirection.x > 0) {
+            floorWallPos.x = mapCoords.x;
+            floorWallPos.y = mapCoords.y + wallX;
+        }
+        else if(side == 0 && rayDirection.x < 0) {
+            floorWallPos.x = mapCoords.x + 1.0;
+            floorWallPos.y = mapCoords.y + wallX;
+        }
+        else if(side == 1 && rayDirection.x > 0) {
+            floorWallPos.x = mapCoords.x + wallX;
+            floorWallPos.y = mapCoords.y;
+        }
+        else {
+            floorWallPos.x = mapCoords.x + wallX;
+            floorWallPos.y = mapCoords.y + 1.0;
+        }
+
+        let distancePlayer = 0.0;
+        let currentDistance = 0.0;
+
+        if (drawEnd < 0) 
+            drawEnd = height;
+        
+        for(let y = drawEnd + 1; y < height; y++) {
+            currentDistance = h / (2.0 * y - h);
+    
+            let weight = (currentDistance - distancePlayer) / (perpendicularWallDistance - distancePlayer);
+            
+            let curretFloor = new Vector2(weight * floorWallPos.x + (1.0 - weight) * position.x,
+                                          weight * floorWallPos.y + (1.0 - weight) * position.y)
+    
+            let floorTex = new Vector2(int(currentFloor.x * textureWidth) % textureWidth,
+                                       int(currentFloor.y * textureHeight) % textureHeight);
+    
+            //floor
+            buffer[y][x] = (texture[3][texWidth * floorTexY + floorTexX] >> 1) & 8355711;
+            //ceiling (symmetrical!)
+            buffer[h - y][x] = texture[6][texWidth * floorTexY + floorTexX];
+        }
+        */
+    }
 
     // Render minimap
     for (let x = 0; x < mapWidth; x++) {

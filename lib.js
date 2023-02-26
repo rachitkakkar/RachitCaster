@@ -141,7 +141,7 @@ function drawPixelBlock(x, y, width, height, color)
 */
 
 // Math functions
-function int(value) { return Math.trunc(value); } // Originally parseInt(), but it was very slow and affected performance considerably
+function int(value) { return ~~value; } // Originally parseInt(), but it was very slow and affected performance considerably
 function float(value) { return parseFloat(value); }
 function rgbToHex(r, g, b) // Unused
 {
