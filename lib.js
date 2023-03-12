@@ -126,6 +126,22 @@ function drawCircle(screen, centerX, centerY, radius, red, green, blue) { // Bre
         eightWayPlot(screen, centerX, centerY, x, y, red, green, blue);
     }
 }
+
+function drawFilledCircle(screen, centerX, centerY, radius, red, green, blue) { // Solution from StackOverflow
+    let radiusSquared = radius * radius;
+    let area = radiusSquared << 2;
+    let rr = radius << 1;
+
+    for (let i = 0; i < area; i++)
+    {
+        let x = (i % rr) - radius;
+        let y = (i / rr) - radius;
+
+        if (x * x + y * y <= radiusSquared)
+            drawPixel(screen, centerX + x, centerY + y, red, green, blue);
+    }
+}
+
 /*
 function drawPixel(x, y, color)
 {
@@ -141,11 +157,32 @@ function drawPixelBlock(x, y, width, height, color)
 */
 
 // Math functions
-function int(value) { return ~~value; } // Originally parseInt(), but it was very slow and affected performance considerably
-function float(value) { return parseFloat(value); }
-function rgbToHex(r, g, b) // Unused
-{
+function int(value) { // Originally parseInt(), but it was very slow and affected performance considerably
+    return ~~value; 
+}
+
+function float(value) { 
+    return parseFloat(value); 
+}
+
+function RGBToHex(r, g, b) {
     return "#" + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
+}
+
+function RGBToInt(red, green, blue) {
+    var r = red & 0xFF;
+    var g = green & 0xFF;
+    var b = blue & 0xFF;
+
+    return (r << 24) + (g << 16) + (b << 8) + 255;
+}
+
+function intToRGB(i) {
+    return {
+        red: i >> 24 & 0xFF,
+        green: i >> 16 & 0xFF,
+        blue: i >> 8 & 0xFF,
+    }
 }
 
 /*
@@ -157,15 +194,6 @@ function mapValue(value, leftMin, leftMax, rightMin, rightMax)
     return rightMin + (valueScaled * rightSpan);
 }
 */
-
-function sample(x, y, width, height)
-{
-    let sx = int(x * width);
-    let sy = int(y * height);
-    if (x < 0 || x >= width || y < 0 || y >= height)
-        return;
-    return sx, sy;
-}
 
 function swapPoints(point1, point2) {
     let temp = point1.x;
@@ -189,8 +217,7 @@ function interpolate(i0, d0, i1, d1) {
     return values;
 }
 
-function Vector2(x, y) 
-{
+function Vector2(x, y) {
     this.x = x;
     this.y = y;
 }

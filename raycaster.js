@@ -1,13 +1,24 @@
 // Screen dimensions
-const screenWidth = int(window.innerWidth * .75);
-const screenHeight = int(window.innerHeight * .75);
+const screenWidth = int(window.innerWidth);
+const screenHeight = int(window.innerHeight);
 
 // Dealing with canvas
 canvas.width = screenWidth;
 canvas.height = screenHeight;
 
 var ctx = canvas.getContext("2d");
-var screen = ctx.createImageData(screenWidth, screenHeight);
+var screen = ctx.createImageData(screenWidth, screenHeight)
+
+// Instruction prompt animation
+let prompt_ = "Click to lock mouse cursor. Arrow keys or WASD to move."
+let promptY = 1;
+let promptX = screenWidth / 2 - 5 * prompt_.length;
+let rectX = promptX - 1;
+let rectY = promptY - 20;
+let rectWidth = 10.25 * prompt_.length + 1;
+let rectHeight = 25;
+let maxHeight = 35;
+let showPrompt = true;
 
 // Delta time
 var now;
@@ -53,36 +64,6 @@ function generateMaze(mazeWidth, mazeHeight) {
     return maze;
 }
 
-/*
-const map = 
-[
-    [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
-    [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
-    [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
-    [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
-    [1,0,0,0,0,0,2,2,2,2,2,0,0,0,0,3,0,3,0,3,0,0,0,1],
-    [1,0,0,0,0,0,2,0,0,0,2,0,0,0,0,0,0,0,0,0,0,0,0,1],
-    [1,0,0,0,0,0,2,0,0,0,2,0,0,0,0,3,0,0,0,3,0,0,0,1],
-    [1,0,0,0,0,0,2,0,0,0,2,0,0,0,0,0,0,0,0,0,0,0,0,1],
-    [1,0,0,0,0,0,2,2,0,2,2,0,0,0,0,3,0,3,0,3,0,0,0,1],
-    [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
-    [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
-    [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
-    [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
-    [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
-    [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
-    [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
-    [1,4,4,4,4,4,4,4,4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
-    [1,4,0,4,0,0,0,0,4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
-    [1,4,0,0,0,0,5,0,4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
-    [1,4,0,4,0,0,0,0,4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
-    [1,4,0,4,4,4,4,4,4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
-    [1,4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
-    [1,4,4,4,4,4,4,4,4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
-    [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
-];
-*/
-
 const mapWidth = 25;
 const mapHeight = 25;
 const map = generateMaze(mapWidth, mapHeight);
@@ -93,7 +74,7 @@ const padding = int(blockSize / 2);
 const playerSize = int(padding * 3/5);
 
 // Player
-const MOVE_SPEED = 3;
+const MOVE_SPEED = 3.25;
 // const ROTATION_SPEED = 1.25;
 
 var position = new Vector2(1.5, 1.5);
@@ -114,6 +95,9 @@ canvas.addEventListener("click", async () => {
         unadjustedMovement: true,
       });
     }
+
+    if (showPrompt)
+        showPrompt = false;
 });
 document.addEventListener("pointerlockchange", lockChangeAlert, false);
 
@@ -221,8 +205,7 @@ function rotatePlayer(event) {
 }
 
 // Sprite structure
-function Sprite(x, y, texture) 
-{
+function Sprite(x, y, texture) {
     this.x = x;
     this.y = y;
 }
@@ -247,6 +230,7 @@ function main() {
     movePlayer(moveSpeed);
     
     // Draw floor and ceiling (Horizontally)
+    /*
     let leftRayDirection = new Vector2(direction.x - plane.x, direction.y - plane.y);
     let rightRayDirection = new Vector2(direction.x + plane.x, direction.y + plane.y);
     for (let y = 0; y < screenHeight; y++) {
@@ -284,6 +268,7 @@ function main() {
             drawPixel(screen, x, screenHeight - y - 1, 0 / dimFactor, 191 / dimFactor, 255 / dimFactor);
         }
     }
+    */
 
     // drawRectangle(screen, 0, 0, screenWidth, screenHeight / 2, 0, 191, 255);
     // drawRectangle(screen, 0, screenHeight / 2, screenWidth, screenHeight, 72, 171, 62);
@@ -403,7 +388,6 @@ function main() {
         }
 
         // Draw Wall and Ceiling (Vertically)
-        /*
         let floorWallPos = new Vector2();
         if(side == 0 && rayDirection.x > 0) {
             floorWallPos.x = mapCoords.x;
@@ -413,7 +397,7 @@ function main() {
             floorWallPos.x = mapCoords.x + 1.0;
             floorWallPos.y = mapCoords.y + wallX;
         }
-        else if(side == 1 && rayDirection.x > 0) {
+        else if(side == 1 && rayDirection.y > 0) {
             floorWallPos.x = mapCoords.x + wallX;
             floorWallPos.y = mapCoords.y;
         }
@@ -422,29 +406,31 @@ function main() {
             floorWallPos.y = mapCoords.y + 1.0;
         }
 
-        let distancePlayer = 0.0;
         let currentDistance = 0.0;
 
         if (drawEnd < 0) 
-            drawEnd = height;
+            drawEnd = screenHeight;
         
-        for(let y = drawEnd + 1; y < height; y++) {
-            currentDistance = h / (2.0 * y - h);
+        for(let y = drawEnd + 1; y < screenHeight; y++) {
+            currentDistance = screenHeight / (2.0 * y - screenHeight);
     
-            let weight = (currentDistance - distancePlayer) / (perpendicularWallDistance - distancePlayer);
+            let weight = currentDistance / perpendicularWallDistance;
             
-            let curretFloor = new Vector2(weight * floorWallPos.x + (1.0 - weight) * position.x,
+            let currentFloor = new Vector2(weight * floorWallPos.x + (1.0 - weight) * position.x,
                                           weight * floorWallPos.y + (1.0 - weight) * position.y)
     
             let floorTex = new Vector2(int(currentFloor.x * textureWidth) % textureWidth,
                                        int(currentFloor.y * textureHeight) % textureHeight);
-    
-            //floor
-            buffer[y][x] = (texture[3][texWidth * floorTexY + floorTexX] >> 1) & 8355711;
-            //ceiling (symmetrical!)
-            buffer[h - y][x] = texture[6][texWidth * floorTexY + floorTexX];
+
+            let dimFactor = 0.8 + (((screenHeight - y - 1) / 5) * 0.01);
+            let pixelindex = (floorTex.y * textureWidth + floorTex.x) * 4;
+            let red = groundTexture.data[pixelindex] / dimFactor;
+            let green = groundTexture.data[pixelindex+1] / dimFactor;
+            let blue = groundTexture.data[pixelindex+2] / dimFactor;
+
+            drawPixel(screen, x, y, red, green, blue);
+            drawPixel(screen, x, screenHeight - y - 1, 0 / dimFactor, 191 / dimFactor, 255 / dimFactor);
         }
-        */
     }
 
     // Render minimap
@@ -466,15 +452,26 @@ function main() {
     
     // drawRectangle(screen, adjustedPosition.x, adjustedPosition.y, blockSize, blockSize, 255, 255, 255);    
     drawPixel(screen, adjustedPosition.x, adjustedPosition.y, 255, 255, 255);
-    drawCircle(screen, adjustedPosition.x, adjustedPosition.y, playerSize, 255, 255, 255);
+    drawFilledCircle(screen, adjustedPosition.x, adjustedPosition.y, playerSize, 255, 255, 255);
     drawLine(screen, new Vector2(adjustedPosition.x, adjustedPosition.y), leftAngle, 255, 255, 255);
     drawLine(screen, new Vector2(adjustedPosition.x, adjustedPosition.y), rightAngle, 255, 255, 255);
 
     ctx.putImageData(screen, 0, 0);
 
     ctx.font = "22px Helvetica";
-    ctx.fillStyle = "white";
-    ctx.fillText(`${(1 / deltaTime).toFixed(3)} FPS`, 5, 25);
+    // ctx.fillText(`${(1 / deltaTime).toFixed(3)} FPS`, 5, 25);
+    
+    if (showPrompt) {
+        ctx.fillStyle = "white";
+        ctx.fillRect(rectX, rectY, rectWidth, rectHeight);
+        ctx.fillStyle = "black";
+        ctx.fillText(prompt_, promptX, promptY);
+        if (promptY < maxHeight) {
+            promptY++;
+            rectY++
+        }
+    }
+
     requestAnimationFrame(main);
 }
 
