@@ -10,12 +10,12 @@ var ctx = canvas.getContext("2d");
 var screen = ctx.createImageData(screenWidth, screenHeight)
 
 // Instruction prompt animation
-let prompt_ = "Click to lock mouse cursor. Arrow keys or WASD to move."
+let prompt_ = "CLICK TO LOCK MOUSE CURSOR. ARROW KEYS OR WASD TO MOVE."
 let promptY = 1;
 let promptX = screenWidth / 2 - 5 * prompt_.length;
-let rectX = promptX - 1;
+let rectX = promptX - 2.5;
 let rectY = promptY - 20;
-let rectWidth = 10.25 * prompt_.length + 1;
+let rectWidth = 10.25 * prompt_.length;
 let rectHeight = 25;
 let maxHeight = 35;
 let showPrompt = true;
@@ -71,7 +71,7 @@ const map = generateMaze(mapWidth, mapHeight);
 // Minimap values
 const blockSize = int(screenWidth / 120);
 const padding = int(blockSize / 2);
-const playerSize = int(padding * 3/5);
+const playerSize = int(padding * 4/5);
 
 // Player
 const MOVE_SPEED = 3.25;
@@ -359,6 +359,8 @@ function main() {
             textureCoords.y = int(texturePosition) & (textureHeight - 1);
             texturePosition += step;
 
+            let dimFactor = 0.8 + (0.1 * (perpendicularWallDistance));
+            /*
             // Calculate the lighting of the texture based on the height of the line being rendered (which is based off of distance)
             let nearness;
             if (lineHeight > 100) // If the line is bigger than a 100 pixels, make it full brightness
@@ -368,6 +370,7 @@ function main() {
 
             // Add 0.01 to the "dimness factor" for every pixel in the difference between the line height and a 100 pixels
             let dimFactor = 0.8 + (0.01 * (100 - nearness)); // Make the max "dimness factor" 0.8 so it is slightly brighter than the actual texture
+            */
             /*
             let dimFactor = 0.8;
             let temp = dimFactor;
@@ -422,24 +425,23 @@ function main() {
             let floorTex = new Vector2(int(currentFloor.x * textureWidth) % textureWidth,
                                        int(currentFloor.y * textureHeight) % textureHeight);
 
-            let dimFactor = 0.8 + (((screenHeight - y - 1) / 5) * 0.01);
+            let dimFactor = 0.8 + ((screenHeight - y - 1) * 0.002);
             let pixelindex = (floorTex.y * textureWidth + floorTex.x) * 4;
             let red = groundTexture.data[pixelindex] / dimFactor;
             let green = groundTexture.data[pixelindex+1] / dimFactor;
             let blue = groundTexture.data[pixelindex+2] / dimFactor;
 
             drawPixel(screen, x, y, red, green, blue);
-            drawPixel(screen, x, screenHeight - y - 1, 0 / dimFactor, 191 / dimFactor, 255 / dimFactor);
+            drawPixel(screen, x, screenHeight - y - 1, 45 / dimFactor, 45 / dimFactor, 45 / dimFactor);
         }
     }
 
     // Render minimap
+    drawRectangle(screen, (screenWidth - mapWidth * blockSize - padding), padding, mapWidth * blockSize, mapHeight * blockSize, 66, 66, 66);
     for (let x = 0; x < mapWidth; x++) {
         for (let y = 0; y < mapHeight; y++) {
             if (map[x][y] > 0)
-                drawRectangle(screen, (x * blockSize) + (screenWidth - mapWidth * blockSize - padding), y * blockSize + padding, blockSize, blockSize, 0, 255, 0);
-            else
-                drawRectangle(screen, (x * blockSize) + (screenWidth - mapWidth * blockSize - padding), y * blockSize + padding, blockSize, blockSize, 0, 0, 0);
+                drawRectangle(screen, (x * blockSize) + (screenWidth - mapWidth * blockSize - padding), y * blockSize + padding, blockSize - 1, blockSize - 1, 255, 255, 255);                
         }
     }
 
@@ -451,15 +453,13 @@ function main() {
                                  (position.y + direction.y + plane.y) * blockSize + padding);
     
     // drawRectangle(screen, adjustedPosition.x, adjustedPosition.y, blockSize, blockSize, 255, 255, 255);    
-    drawPixel(screen, adjustedPosition.x, adjustedPosition.y, 255, 255, 255);
-    drawFilledCircle(screen, adjustedPosition.x, adjustedPosition.y, playerSize, 255, 255, 255);
-    drawLine(screen, new Vector2(adjustedPosition.x, adjustedPosition.y), leftAngle, 255, 255, 255);
-    drawLine(screen, new Vector2(adjustedPosition.x, adjustedPosition.y), rightAngle, 255, 255, 255);
+    drawFilledCircle(screen, adjustedPosition.x, adjustedPosition.y, playerSize, 255, 92, 92);
+    drawLine(screen, new Vector2(adjustedPosition.x, adjustedPosition.y), leftAngle, 255, 92, 92);
+    drawLine(screen, new Vector2(adjustedPosition.x, adjustedPosition.y), rightAngle, 255, 92, 92);
 
     ctx.putImageData(screen, 0, 0);
 
-    ctx.font = "22px Helvetica";
-    // ctx.fillText(`${(1 / deltaTime).toFixed(3)} FPS`, 5, 25);
+    ctx.font = "17px Monaco";
     
     if (showPrompt) {
         ctx.fillStyle = "white";
@@ -470,6 +470,12 @@ function main() {
             promptY++;
             rectY++
         }
+    }
+
+    else {
+        ctx.font = "18px Monaco";
+        ctx.fillStyle = "white";
+        ctx.fillText(`${(1 / deltaTime).toFixed(3)} FPS`, 5, 25);
     }
 
     requestAnimationFrame(main);

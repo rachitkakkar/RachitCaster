@@ -128,17 +128,13 @@ function drawCircle(screen, centerX, centerY, radius, red, green, blue) { // Bre
 }
 
 function drawFilledCircle(screen, centerX, centerY, radius, red, green, blue) { // Solution from StackOverflow
-    let radiusSquared = radius * radius;
-    let area = radiusSquared << 2;
-    let rr = radius << 1;
+    for (let x = -radius; x < radius ; x++) {
+        let hh = int(Math.sqrt(radius * radius - x * x));
+        let rx = centerX + x;
+        let ph = centerY + hh;
 
-    for (let i = 0; i < area; i++)
-    {
-        let x = (i % rr) - radius;
-        let y = (i / rr) - radius;
-
-        if (x * x + y * y <= radiusSquared)
-            drawPixel(screen, centerX + x, centerY + y, red, green, blue);
+        for (let y = centerY-hh; y < ph; y++)
+            drawPixel(screen, rx, y, red, green, blue);
     }
 }
 
