@@ -7,9 +7,9 @@ canvas.width = screenWidth;
 canvas.height = screenHeight;
 
 var ctx = canvas.getContext("2d");
-var screen = ctx.createImageData(screenWidth, screenHeight)
+var screen = ctx.createImageData(screenWidth, screenHeight); // Create an image data object to draw pixels to
 
-// Instruction prompt animation
+// Instruction prompt animation, includes everything needed to render the animated prompt at the beginning
 let prompt_ = "CLICK TO LOCK MOUSE CURSOR. ARROW KEYS OR WASD TO MOVE."
 let promptY = 1;
 let promptX = screenWidth / 2 - 5 * prompt_.length;
@@ -20,17 +20,17 @@ let rectHeight = 25;
 let maxHeight = 35;
 let showPrompt = true;
 
-// Delta time
+// Variables needed for delta time calculation
 var now;
 var lastUpdate;
 var deltaTime;
 
 // World representation
 function generateMaze(mazeWidth, mazeHeight) {
-    if (mazeWidth !== mazeHeight || mazeHeight % 2 !== 1)
+    if (mazeWidth !== mazeHeight || mazeHeight % 2 !== 1) // Constraints to make the algorithm simple
         return "Error: Size must be odd and square!"
 
-    // Generate maze
+    // Generate maze as a 2D array. 1 = WALL and 0 = SPACE. The maze starts as a solid block filled with ones.
     let maze = [];
     for (let x = 0; x < mazeWidth; x++) {
         let row = [];
@@ -40,6 +40,8 @@ function generateMaze(mazeWidth, mazeHeight) {
         maze.push(row);
     }
 
+    // Use the binary tree maze generation algorithm to carve out spaces in the block generated earlier. 
+    // The algorithm runs on everything except the two columns on the right and rows on the bottom.
     for (let x = 1; x < mazeWidth-2; x += 2) {
         for (let y = 1; y < mazeHeight-2; y += 2) {
             maze[x][y] = 0;
@@ -80,6 +82,7 @@ const MOVE_SPEED = 3.25;
 var position = new Vector2(1.5, 1.5);
 var direction = new Vector2(1, 0);
 var plane = new Vector2(0, 0.66);
+var pitch = 0.0;
 
 // Input and key handling
 var keyRight = false;
@@ -162,11 +165,19 @@ function keyReleased(event) {
 // Movement
 function movePlayer(moveSpeed) {
     if (keyRight) {
-
+        var newPosition = new Vector2(position.x + (plane.x * moveSpeed), position.y + (plane.y * moveSpeed));
+        if (map[int(newPosition.x)][int(position.y)] === 0)
+            position.x = newPosition.x;
+        if (map[int(position.x)][int(newPosition.y)] === 0) 
+            position.y = newPosition.y;
     }
 
     if (keyLeft) {
-
+        var newPosition = new Vector2(position.x - (plane.x * moveSpeed), position.y - (plane.y * moveSpeed));
+        if (map[int(newPosition.x)][int(position.y)] === 0)
+            position.x = newPosition.x;
+        if (map[int(position.x)][int(newPosition.y)] === 0) 
+            position.y = newPosition.y;
     }
 
     if (keyUp) {
@@ -199,9 +210,6 @@ function rotatePlayer(event) {
     newPlane.x = plane.x * Math.cos(rotationSpeed) - plane.y * Math.sin(rotationSpeed);
     newPlane.y = plane.x * Math.sin(rotationSpeed) + plane.y * Math.cos(rotationSpeed);
     plane = newPlane;
-
-    lastMouseX = event.clientX;
-    lastMouseY = event.clientY;
 }
 
 // Sprite structure
@@ -281,8 +289,10 @@ function main() {
         let mapCoords = new Vector2(int(position.x), int(position.y));
         let sideDistance = new Vector2();
         let deltaDistance = new Vector2(
-            (rayDirection.x === 0) ? 1e+30 : Math.abs(1 / rayDirection.x),
-            (rayDirection.y === 0) ? 1e+30 : Math.abs(1 / rayDirection.y)
+            // (rayDirection.x === 0) ? 1e+30 : Math.abs(1 / rayDirection.x),
+            // (rayDirection.y === 0) ? 1e+30 : Math.abs(1 / rayDirection.y)
+            Math.abs(1 / rayDirection.x),
+            Math.abs(1 / rayDirection.y)
         );
 
         var step = new Vector2();
@@ -414,7 +424,7 @@ function main() {
         if (drawEnd < 0) 
             drawEnd = screenHeight;
         
-        for(let y = drawEnd + 1; y < screenHeight; y++) {
+        for(let y = drawEnd; y < screenHeight; y++) {
             currentDistance = screenHeight / (2.0 * y - screenHeight);
     
             let weight = currentDistance / perpendicularWallDistance;
