@@ -258,11 +258,14 @@ function main() {
     let moveSpeed = MOVE_SPEED * deltaTime;
     // let rotationSpeed = ROTATION_SPEED * deltaTime;
     movePlayer(moveSpeed);
-
-    if (pitch < -300) 
-        pitch = -300;
-    if(pitch > 300)
-        pitch = 300;
+    
+    let clipPitch = 300;
+    if (screenHeight / 2 < 300) 
+        clipPitch = screenHeight / 2;
+    if (pitch < -clipPitch)
+        pitch = -clipPitch;
+    if (pitch > clipPitch)
+        pitch = clipPitch;
     
     // Draw floor and ceiling (Horizontally)
     /*
@@ -509,14 +512,13 @@ function main() {
     // drawLine(screen, new Vector2(adjustedPosition.x, adjustedPosition.y), leftAngle, 255, 92, 92);
     // drawLine(screen, new Vector2(adjustedPosition.x, adjustedPosition.y), rightAngle, 255, 92, 92);
 
-    // Render Crosshair
-    drawRectangle(screen, screenWidth / 2, screenHeight / 2 - crosshairSizeLong / 2 + crosshairSizeShort / 2, crosshairSizeShort, crosshairSizeLong, 240, 240, 240);
-    drawRectangle(screen, screenWidth / 2 - crosshairSizeLong / 2 + crosshairSizeShort / 2, screenHeight / 2, crosshairSizeLong, crosshairSizeShort, 240, 240, 240);
-
+    // Render crosshair
+    drawRectangle(screen, screenWidth / 2, screenHeight / 2 - crosshairSizeLong / 2, crosshairSizeShort, crosshairSizeLong, 255, 255, 255);
+    drawRectangle(screen, screenWidth / 2 - crosshairSizeLong / 2 + crosshairSizeShort / 2, screenHeight / 2 - crosshairSizeShort / 2, crosshairSizeLong, crosshairSizeShort, 255, 255, 255);
+    
     ctx.putImageData(screen, 0, 0);
 
     ctx.font = "17px Monaco";
-    
     if (showPrompt) {
         ctx.fillStyle = "white";
         ctx.fillRect(rectX, rectY, rectWidth, rectHeight);
