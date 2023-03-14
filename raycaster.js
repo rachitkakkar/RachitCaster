@@ -489,13 +489,6 @@ function main() {
 
     // Render minimap
     drawRectangle(screen, (screenWidth - mapWidth * blockSize - padding), padding, mapWidth * blockSize, mapHeight * blockSize, 66, 66, 66);
-    for (let x = 0; x < mapWidth; x++) {
-        for (let y = 0; y < mapHeight; y++) {
-            if (map[x][y] > 0)
-                drawRectangle(screen, (x * blockSize) + (screenWidth - mapWidth * blockSize - padding), y * blockSize + padding, blockSize - 1, blockSize - 1, 255, 255, 255);                
-        }
-    }
-
     let adjustedPosition = new Vector2((position.x * blockSize) + (screenWidth - mapWidth * blockSize - padding),
                                        position.y * blockSize + padding);
     // let leftAngle = new Vector2(((position.x + direction.x - plane.x) * blockSize) + (screenWidth - mapWidth * blockSize - padding),
@@ -508,6 +501,12 @@ function main() {
     raysOnMap.forEach(rayOnMap =>
         drawLine(screen, adjustedPosition, rayOnMap, 255, 92, 92)
     );
+    for (let x = 0; x < mapWidth; x++) {
+        for (let y = 0; y < mapHeight; y++) {
+            if (map[x][y] > 0)
+                drawRectangle(screen, (x * blockSize) + (screenWidth - mapWidth * blockSize - padding), y * blockSize + padding, blockSize - 1, blockSize - 1, 255, 255, 255);                
+        }
+    }
 
     // drawLine(screen, new Vector2(adjustedPosition.x, adjustedPosition.y), leftAngle, 255, 92, 92);
     // drawLine(screen, new Vector2(adjustedPosition.x, adjustedPosition.y), rightAngle, 255, 92, 92);
