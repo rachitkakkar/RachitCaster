@@ -513,8 +513,8 @@ function main() {
     // drawLine(screen, new Vector2(adjustedPosition.x, adjustedPosition.y), rightAngle, 255, 92, 92);
 
     // Render crosshair
-    drawRectangle(screen, screenWidth / 2, screenHeight / 2 - crosshairSizeLong / 2, crosshairSizeShort, crosshairSizeLong, 255, 255, 255);
-    drawRectangle(screen, screenWidth / 2 - crosshairSizeLong / 2 + crosshairSizeShort / 2, screenHeight / 2 - crosshairSizeShort / 2, crosshairSizeLong, crosshairSizeShort, 255, 255, 255);
+    drawRectangle(screen, screenWidth / 2, screenHeight / 2 - 9, 2, 20, 255, 255, 255);
+    drawRectangle(screen, screenWidth / 2 - 10 + 1, screenHeight / 2, 20, 2, 255, 255, 255);
     
     ctx.putImageData(screen, 0, 0);
 
