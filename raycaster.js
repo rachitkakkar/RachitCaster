@@ -70,8 +70,10 @@ const mapWidth = 25;
 const mapHeight = 25;
 const map = generateMaze(mapWidth, mapHeight);
 
-// Minimap values
+// Minimap and crosshair values
 const blockSize = int(screenWidth / 120);
+const crosshairSizeShort = int(blockSize / 6);
+const crosshairSizeLong = int(crosshairSizeShort * 12);
 const padding = int(blockSize / 2);
 const playerSize = int(padding * 4/5);
 
@@ -484,6 +486,13 @@ function main() {
 
     // Render minimap
     drawRectangle(screen, (screenWidth - mapWidth * blockSize - padding), padding, mapWidth * blockSize, mapHeight * blockSize, 66, 66, 66);
+    for (let x = 0; x < mapWidth; x++) {
+        for (let y = 0; y < mapHeight; y++) {
+            if (map[x][y] > 0)
+                drawRectangle(screen, (x * blockSize) + (screenWidth - mapWidth * blockSize - padding), y * blockSize + padding, blockSize - 1, blockSize - 1, 255, 255, 255);                
+        }
+    }
+
     let adjustedPosition = new Vector2((position.x * blockSize) + (screenWidth - mapWidth * blockSize - padding),
                                        position.y * blockSize + padding);
     // let leftAngle = new Vector2(((position.x + direction.x - plane.x) * blockSize) + (screenWidth - mapWidth * blockSize - padding),
@@ -500,12 +509,9 @@ function main() {
     // drawLine(screen, new Vector2(adjustedPosition.x, adjustedPosition.y), leftAngle, 255, 92, 92);
     // drawLine(screen, new Vector2(adjustedPosition.x, adjustedPosition.y), rightAngle, 255, 92, 92);
 
-    for (let x = 0; x < mapWidth; x++) {
-        for (let y = 0; y < mapHeight; y++) {
-            if (map[x][y] > 0)
-                drawRectangle(screen, (x * blockSize) + (screenWidth - mapWidth * blockSize - padding), y * blockSize + padding, blockSize - 1, blockSize - 1, 255, 255, 255);                
-        }
-    }
+    // Render Crosshair
+    drawRectangle(screen, screenWidth / 2, screenHeight / 2 - crosshairSizeLong / 2 + crosshairSizeShort / 2, crosshairSizeShort, crosshairSizeLong, 240, 240, 240);
+    drawRectangle(screen, screenWidth / 2 - crosshairSizeLong / 2 + crosshairSizeShort / 2, screenHeight / 2, crosshairSizeLong, crosshairSizeShort, 240, 240, 240);
 
     ctx.putImageData(screen, 0, 0);
 
