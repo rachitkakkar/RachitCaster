@@ -181,7 +181,6 @@ function intToRGB(i) {
     }
 }
 
-/*
 function mapValue(value, leftMin, leftMax, rightMin, rightMax)
 {
     var leftSpan = leftMax - leftMin;
@@ -189,7 +188,6 @@ function mapValue(value, leftMin, leftMax, rightMin, rightMax)
     var valueScaled = float(value - leftMin) / float(leftSpan);
     return rightMin + (valueScaled * rightSpan);
 }
-*/
 
 function swapPoints(point1, point2) {
     let temp = point1.x;

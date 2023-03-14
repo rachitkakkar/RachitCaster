@@ -82,6 +82,7 @@ const MOVE_SPEED = 3.25;
 var position = new Vector2(1.5, 1.5);
 var direction = new Vector2(1, 0);
 var plane = new Vector2(0, 0.66);
+var walkTime = 0.0;
 var pitch = 0.0;
 
 // Input and key handling
@@ -164,12 +165,16 @@ function keyReleased(event) {
 
 // Movement
 function movePlayer(moveSpeed) {
+    let moved = false;
+
     if (keyRight) {
         var newPosition = new Vector2(position.x + (plane.x * moveSpeed), position.y + (plane.y * moveSpeed));
         if (map[int(newPosition.x)][int(position.y)] === 0)
             position.x = newPosition.x;
         if (map[int(position.x)][int(newPosition.y)] === 0) 
             position.y = newPosition.y;
+
+        moved = true;
     }
 
     if (keyLeft) {
@@ -178,6 +183,8 @@ function movePlayer(moveSpeed) {
             position.x = newPosition.x;
         if (map[int(position.x)][int(newPosition.y)] === 0) 
             position.y = newPosition.y;
+
+        moved = true;
     }
 
     if (keyUp) {
@@ -186,6 +193,8 @@ function movePlayer(moveSpeed) {
             position.x = newPosition.x;
         if (map[int(position.x)][int(newPosition.y)] === 0) 
             position.y = newPosition.y;
+
+        moved = true;
     }
 
     if (keyDown) {
@@ -194,22 +203,33 @@ function movePlayer(moveSpeed) {
             position.x = newPosition.x;
         if (map[int(position.x)][int(newPosition.y)] === 0) 
             position.y = newPosition.y;
+        
+        moved = true;
+    }
+
+    if (moved) {
+        walkTime += deltaTime;
+        pitch += (Math.cos(10 * walkTime) / 2 * 3.5);
     }
 }
 
 function rotatePlayer(event) {
     let differenceX = event.movementX / screenWidth;
-    let rotationSpeed = (differenceX * 45) * deltaTime;
+    let differenceY = event.movementY / screenHeight;
+    let rotationSpeedX = (differenceX * 45) * deltaTime;
+    let rotationSpeedY = -(differenceY * 10000) * deltaTime;
 
     var newDirection = new Vector2();
-    newDirection.x = direction.x * Math.cos(rotationSpeed) - direction.y * Math.sin(rotationSpeed);
-    newDirection.y = direction.x * Math.sin(rotationSpeed) + direction.y * Math.cos(rotationSpeed);
+    newDirection.x = direction.x * Math.cos(rotationSpeedX) - direction.y * Math.sin(rotationSpeedX);
+    newDirection.y = direction.x * Math.sin(rotationSpeedX) + direction.y * Math.cos(rotationSpeedX);
     direction = newDirection;
 
     var newPlane = new Vector2();
-    newPlane.x = plane.x * Math.cos(rotationSpeed) - plane.y * Math.sin(rotationSpeed);
-    newPlane.y = plane.x * Math.sin(rotationSpeed) + plane.y * Math.cos(rotationSpeed);
+    newPlane.x = plane.x * Math.cos(rotationSpeedX) - plane.y * Math.sin(rotationSpeedX);
+    newPlane.y = plane.x * Math.sin(rotationSpeedX) + plane.y * Math.cos(rotationSpeedX);
     plane = newPlane;
+
+    pitch += rotationSpeedY;
 }
 
 // Sprite structure
@@ -236,6 +256,11 @@ function main() {
     let moveSpeed = MOVE_SPEED * deltaTime;
     // let rotationSpeed = ROTATION_SPEED * deltaTime;
     movePlayer(moveSpeed);
+
+    if (pitch < -300) 
+        pitch = -300;
+    if(pitch > 300)
+        pitch = 300;
     
     // Draw floor and ceiling (Horizontally)
     /*
@@ -281,7 +306,12 @@ function main() {
     // drawRectangle(screen, 0, 0, screenWidth, screenHeight / 2, 0, 191, 255);
     // drawRectangle(screen, 0, screenHeight / 2, screenWidth, screenHeight, 72, 171, 62);
 
+    for (let y = 0; y < screenHeight; y++) {
+        let dimFactor = mapValue(y, 0, screenHeight, 0.8, 2);
+        drawLine(screen, new Vector2(0, y), new Vector2(screenWidth, y), 45 / dimFactor, 45 / dimFactor, 45 / dimFactor);
+    }
     
+    let raysOnMap = [];
     for (let x = 0; x < screenWidth; x++) {
         let cameraX = 2 * x / screenWidth - 1;
         let rayDirection = new Vector2(direction.x + plane.x * cameraX, direction.y + plane.y * cameraX);
@@ -340,12 +370,18 @@ function main() {
             perpendicularWallDistance = (sideDistance.x - deltaDistance.x);
         else
             perpendicularWallDistance = (sideDistance.y - deltaDistance.y);
+
+        if (x % 2 == 0) {
+            let rayOnMap = new Vector2(((position.x + (rayDirection.x * perpendicularWallDistance)) * blockSize) + (screenWidth - mapWidth * blockSize - padding),
+                                    (position.y + (rayDirection.y * perpendicularWallDistance)) * blockSize + padding);        
+            raysOnMap.push(rayOnMap);
+        }
     
         let lineHeight = int(screenHeight / perpendicularWallDistance);
-        let drawStart = screenHeight / 2 - lineHeight / 2;
+        let drawStart = screenHeight / 2 - lineHeight / 2 + pitch;
         if (drawStart < 0)
             drawStart = 0;
-        let drawEnd = screenHeight / 2 + lineHeight / 2;
+        let drawEnd = screenHeight / 2 + lineHeight / 2 + pitch;
         if (drawEnd >= screenHeight)  
             drawEnd = screenHeight - 1;
 
@@ -364,12 +400,12 @@ function main() {
             textureCoords.x = textureWidth - textureCoords.x - 1;
 
         var step = 1.0 * textureHeight / lineHeight;
-        let texturePosition = (drawStart - screenHeight / 2 + lineHeight / 2) * step;
+        let texturePosition = (drawStart - pitch - screenHeight / 2 + lineHeight / 2) * step;
         for (let y = int(drawStart); y < int(drawEnd); y++) {
             textureCoords.y = int(texturePosition) & (textureHeight - 1);
             texturePosition += step;
 
-            let dimFactor = 0.8 + (0.1 * (perpendicularWallDistance));
+            let dimFactor = 0.8 + (0.2 * (perpendicularWallDistance));
             /*
             // Calculate the lighting of the texture based on the height of the line being rendered (which is based off of distance)
             let nearness;
@@ -424,8 +460,8 @@ function main() {
         if (drawEnd < 0) 
             drawEnd = screenHeight;
         
-        for(let y = drawEnd; y < screenHeight; y++) {
-            currentDistance = screenHeight / (2.0 * y - screenHeight);
+        for (let y = screenHeight; y > drawEnd; y--) {
+            currentDistance = screenHeight / (2.0 * (y - pitch) - screenHeight);
     
             let weight = currentDistance / perpendicularWallDistance;
             
@@ -435,37 +471,41 @@ function main() {
             let floorTex = new Vector2(int(currentFloor.x * textureWidth) % textureWidth,
                                        int(currentFloor.y * textureHeight) % textureHeight);
 
-            let dimFactor = 0.8 + ((screenHeight - y - 1) * 0.002);
+            let dimFactor = mapValue(y, drawEnd, screenHeight, 1.6, 0.8);
             let pixelindex = (floorTex.y * textureWidth + floorTex.x) * 4;
             let red = groundTexture.data[pixelindex] / dimFactor;
             let green = groundTexture.data[pixelindex+1] / dimFactor;
             let blue = groundTexture.data[pixelindex+2] / dimFactor;
 
             drawPixel(screen, x, y, red, green, blue);
-            drawPixel(screen, x, screenHeight - y - 1, 45 / dimFactor, 45 / dimFactor, 45 / dimFactor);
+            // drawPixel(screen, x, screenHeight - y, 45 / dimFactor, 45 / dimFactor, 45 / dimFactor);
         }
     }
 
     // Render minimap
     drawRectangle(screen, (screenWidth - mapWidth * blockSize - padding), padding, mapWidth * blockSize, mapHeight * blockSize, 66, 66, 66);
+    let adjustedPosition = new Vector2((position.x * blockSize) + (screenWidth - mapWidth * blockSize - padding),
+                                       position.y * blockSize + padding);
+    // let leftAngle = new Vector2(((position.x + direction.x - plane.x) * blockSize) + (screenWidth - mapWidth * blockSize - padding),
+    //                            (position.y + direction.y - plane.y) * blockSize + padding);
+    // let rightAngle = new Vector2(((position.x + direction.x + plane.x) * blockSize) + (screenWidth - mapWidth * blockSize - padding),
+    //                             (position.y + direction.y + plane.y) * blockSize + padding);
+    
+    // drawRectangle(screen, adjustedPosition.x, adjustedPosition.y, blockSize, blockSize, 255, 255, 255);    
+    drawFilledCircle(screen, adjustedPosition.x, adjustedPosition.y, playerSize, 255, 92, 92);
+    raysOnMap.forEach(rayOnMap =>
+        drawLine(screen, adjustedPosition, rayOnMap, 255, 92, 92)
+    );
+
+    // drawLine(screen, new Vector2(adjustedPosition.x, adjustedPosition.y), leftAngle, 255, 92, 92);
+    // drawLine(screen, new Vector2(adjustedPosition.x, adjustedPosition.y), rightAngle, 255, 92, 92);
+
     for (let x = 0; x < mapWidth; x++) {
         for (let y = 0; y < mapHeight; y++) {
             if (map[x][y] > 0)
                 drawRectangle(screen, (x * blockSize) + (screenWidth - mapWidth * blockSize - padding), y * blockSize + padding, blockSize - 1, blockSize - 1, 255, 255, 255);                
         }
     }
-
-    let adjustedPosition = new Vector2((position.x * blockSize) + (screenWidth - mapWidth * blockSize - padding),
-                                       position.y * blockSize + padding);
-    let leftAngle = new Vector2(((position.x + direction.x - plane.x) * blockSize) + (screenWidth - mapWidth * blockSize - padding),
-                                (position.y + direction.y - plane.y) * blockSize + padding);
-    let rightAngle = new Vector2(((position.x + direction.x + plane.x) * blockSize) + (screenWidth - mapWidth * blockSize - padding),
-                                 (position.y + direction.y + plane.y) * blockSize + padding);
-    
-    // drawRectangle(screen, adjustedPosition.x, adjustedPosition.y, blockSize, blockSize, 255, 255, 255);    
-    drawFilledCircle(screen, adjustedPosition.x, adjustedPosition.y, playerSize, 255, 92, 92);
-    drawLine(screen, new Vector2(adjustedPosition.x, adjustedPosition.y), leftAngle, 255, 92, 92);
-    drawLine(screen, new Vector2(adjustedPosition.x, adjustedPosition.y), rightAngle, 255, 92, 92);
 
     ctx.putImageData(screen, 0, 0);
 
