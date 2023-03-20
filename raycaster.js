@@ -11,7 +11,8 @@ var screen = ctx.createImageData(screenWidth, screenHeight); // Create an image 
 
 // Instruction prompt animation, includes everything needed to render the animated prompt at the beginning
 let prompt_ = "CLICK TO LOCK MOUSE CURSOR. ARROW KEYS OR WASD TO MOVE."
-let promptY = 1;
+let promptY = -20;
+let speed = 75;
 let promptX = screenWidth / 2 - 5 * prompt_.length;
 let rectX = promptX - 2.5;
 let rectY = promptY - 20;
@@ -248,11 +249,13 @@ function main() {
     lastUpdate = now;
 
     ctx.putImageData(screen, 0, 0);
+    /*
     for (let i = 0; i < screenWidth; i++) {
         for (let j = 0; j < screenHeight; j++) {
             drawPixel(screen, i, j, 0, 0, 0);
         }
     }
+    */
 
     // Use delta time to calculate a smooth movement speed based on framerate
     let moveSpeed = MOVE_SPEED * deltaTime;
@@ -311,7 +314,7 @@ function main() {
     // drawRectangle(screen, 0, 0, screenWidth, screenHeight / 2, 0, 191, 255);
     // drawRectangle(screen, 0, screenHeight / 2, screenWidth, screenHeight, 72, 171, 62);
 
-    for (let y = 0; y < screenHeight; y++) {
+    for (let y = 0; y < screenHeight / 2 + pitch; y++) {
         let dimFactor = mapValue(y, 0, screenHeight, 0.8, 2);
         drawLine(screen, new Vector2(0, y), new Vector2(screenWidth, y), 45 / dimFactor, 45 / dimFactor, 45 / dimFactor);
     }
@@ -524,8 +527,8 @@ function main() {
         ctx.fillStyle = "black";
         ctx.fillText(prompt_, promptX, promptY);
         if (promptY < maxHeight) {
-            promptY++;
-            rectY++
+            promptY += int(speed * deltaTime);
+            rectY += int(speed * deltaTime);
         }
     }
 
