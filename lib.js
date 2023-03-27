@@ -152,6 +152,14 @@ function drawPixelBlock(x, y, width, height, color)
 }
 */
 
+function clearScreen(screen) {
+    for (let i = 0; i < screen.width; i++) {
+        for (let j = 0; j < screen.height; j++) {
+            drawPixel(screen, i, j, 0, 0, 0);
+        }
+    }
+}
+
 // Math functions
 function int(value) { // Originally parseInt(), but it was very slow and affected performance considerably
     return ~~value; 

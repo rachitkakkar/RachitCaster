@@ -219,8 +219,8 @@ function movePlayer(moveSpeed) {
 function rotatePlayer(event) {
     let differenceX = event.movementX / screenWidth;
     let differenceY = event.movementY / screenHeight;
-    let rotationSpeedX = (differenceX * 45) * deltaTime;
-    let rotationSpeedY = -(differenceY * 10000) * deltaTime;
+    let rotationSpeedX = (differenceX * 70) * deltaTime;
+    let rotationSpeedY = -(differenceY * 15000) * deltaTime;
 
     var newDirection = new Vector2();
     newDirection.x = direction.x * Math.cos(rotationSpeedX) - direction.y * Math.sin(rotationSpeedX);
@@ -249,13 +249,7 @@ function main() {
     lastUpdate = now;
 
     ctx.putImageData(screen, 0, 0);
-    /*
-    for (let i = 0; i < screenWidth; i++) {
-        for (let j = 0; j < screenHeight; j++) {
-            drawPixel(screen, i, j, 0, 0, 0);
-        }
-    }
-    */
+    clearScreen(screen);
 
     // Use delta time to calculate a smooth movement speed based on framerate
     let moveSpeed = MOVE_SPEED * deltaTime;
@@ -299,13 +293,6 @@ function main() {
             let blue = groundTexture.data[pixelindex+2] / dimFactor;
 
             drawPixel(screen, x, y, red, green, blue);
-            // drawPixel(screen, x, y, 72 / dimFactor, 171 / dimFactor, 62 / dimFactor);
-            
-            // red = ceilingTexture.data[pixelindex] / dimFactor;
-            // green = ceilingTexture.data[pixelindex+1] / dimFactor;
-            // blue = ceilingTexture.data[pixelindex+2] / dimFactor;
-
-            // drawPixel(screen, x, screenHeight - y - 1, red, green, blue);
             drawPixel(screen, x, screenHeight - y - 1, 0 / dimFactor, 191 / dimFactor, 255 / dimFactor);
         }
     }
@@ -468,7 +455,8 @@ function main() {
         if (drawEnd < 0) 
             drawEnd = screenHeight;
 
-        for (let y = screenHeight; y > drawEnd; y--) {
+        /*
+        for (let y = screenHeight; y > drawEnd-1; y--) {
             currentDistance = screenHeight / (2.0 * (y - pitch) - screenHeight);
     
             let weight = currentDistance / perpendicularWallDistance;
@@ -486,20 +474,14 @@ function main() {
             let blue = groundTexture.data[pixelindex+2] / dimFactor;
 
             drawPixel(screen, x, y, red, green, blue);
-            // drawPixel(screen, x, screenHeight - y, 45 / dimFactor, 45 / dimFactor, 45 / dimFactor);
         }
+        */
     }
 
     // Render minimap
     drawRectangle(screen, (screenWidth - mapWidth * blockSize - padding), padding, mapWidth * blockSize, mapHeight * blockSize, 66, 66, 66);
     let adjustedPosition = new Vector2((position.x * blockSize) + (screenWidth - mapWidth * blockSize - padding),
-                                       position.y * blockSize + padding);
-    // let leftAngle = new Vector2(((position.x + direction.x - plane.x) * blockSize) + (screenWidth - mapWidth * blockSize - padding),
-    //                            (position.y + direction.y - plane.y) * blockSize + padding);
-    // let rightAngle = new Vector2(((position.x + direction.x + plane.x) * blockSize) + (screenWidth - mapWidth * blockSize - padding),
-    //                             (position.y + direction.y + plane.y) * blockSize + padding);
-    
-    // drawRectangle(screen, adjustedPosition.x, adjustedPosition.y, blockSize, blockSize, 255, 255, 255);    
+                                       position.y * blockSize + padding); 
     drawFilledCircle(screen, adjustedPosition.x, adjustedPosition.y, playerSize, 255, 92, 92);
     raysOnMap.forEach(rayOnMap =>
         drawLine(screen, adjustedPosition, rayOnMap, 255, 92, 92)
@@ -510,9 +492,6 @@ function main() {
                 drawRectangle(screen, (x * blockSize) + (screenWidth - mapWidth * blockSize - padding), y * blockSize + padding, blockSize - 1, blockSize - 1, 255, 255, 255);                
         }
     }
-
-    // drawLine(screen, new Vector2(adjustedPosition.x, adjustedPosition.y), leftAngle, 255, 92, 92);
-    // drawLine(screen, new Vector2(adjustedPosition.x, adjustedPosition.y), rightAngle, 255, 92, 92);
 
     // Render crosshair
     drawRectangle(screen, screenWidth / 2, screenHeight / 2 - 9, 2, 20, 255, 255, 255);
@@ -552,9 +531,6 @@ loadImages(textureUrls).then(textures => {
 
     ctx.drawImage(textures[1], 0, 0);
     groundTexture = ctx.getImageData(0, 0, textureWidth, textureHeight);
-
-    // ctx.drawImage(textures[2], 0, 0);
-    // ceilingTexture = ctx.getImageData(0, 0, textureWidth, textureHeight);
 
     spriteArray = [
         Sprite(20.5, 11.5, '')
