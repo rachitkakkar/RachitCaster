@@ -219,8 +219,8 @@ function movePlayer(moveSpeed) {
 function rotatePlayer(event) {
     let differenceX = event.movementX / screenWidth;
     let differenceY = event.movementY / screenHeight;
-    let rotationSpeedX = (differenceX * 70) * deltaTime;
-    let rotationSpeedY = -(differenceY * 15000) * deltaTime;
+    let rotationSpeedX = (differenceX * 45) * deltaTime;
+    let rotationSpeedY = -(differenceY * 10000) * deltaTime;
 
     var newDirection = new Vector2();
     newDirection.x = direction.x * Math.cos(rotationSpeedX) - direction.y * Math.sin(rotationSpeedX);
@@ -455,7 +455,6 @@ function main() {
         if (drawEnd < 0) 
             drawEnd = screenHeight;
 
-        /*
         for (let y = screenHeight; y > drawEnd-1; y--) {
             currentDistance = screenHeight / (2.0 * (y - pitch) - screenHeight);
     
@@ -475,7 +474,6 @@ function main() {
 
             drawPixel(screen, x, y, red, green, blue);
         }
-        */
     }
 
     // Render minimap
