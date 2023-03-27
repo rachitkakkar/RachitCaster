@@ -1,6 +1,6 @@
 // Screen dimensions
-const screenWidth = int(window.innerWidth);
-const screenHeight = int(window.innerHeight);
+const screenWidth = int(window.innerWidth * .75);
+const screenHeight = int(window.innerHeight * .75);
 
 // Dealing with canvas
 canvas.width = screenWidth;
@@ -249,7 +249,6 @@ function main() {
     lastUpdate = now;
 
     ctx.putImageData(screen, 0, 0);
-    clearScreen(screen);
 
     // Use delta time to calculate a smooth movement speed based on framerate
     let moveSpeed = MOVE_SPEED * deltaTime;
