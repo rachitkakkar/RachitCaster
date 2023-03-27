@@ -16,7 +16,7 @@ let speed = 75;
 let promptX = screenWidth / 2 - 5 * prompt_.length;
 let rectX = promptX - 2.5;
 let rectY = promptY - 20;
-let rectWidth = 10.25 * prompt_.length;
+let rectWidth = 10.5 * prompt_.length;
 let rectHeight = 25;
 let maxHeight = 35;
 let showPrompt = true;
@@ -467,7 +467,7 @@ function main() {
 
         if (drawEnd < 0) 
             drawEnd = screenHeight;
-        
+
         for (let y = screenHeight; y > drawEnd; y--) {
             currentDistance = screenHeight / (2.0 * (y - pitch) - screenHeight);
     
@@ -520,7 +520,7 @@ function main() {
     
     ctx.putImageData(screen, 0, 0);
 
-    ctx.font = "17px Monaco";
+    ctx.font = "17px Helvetica";
     if (showPrompt) {
         ctx.fillStyle = "white";
         ctx.fillRect(rectX, rectY, rectWidth, rectHeight);
@@ -533,7 +533,7 @@ function main() {
     }
 
     else {
-        ctx.font = "18px Monaco";
+        ctx.font = "18px Helvetica";
         ctx.fillStyle = "white";
         ctx.fillText(`${(1 / deltaTime).toFixed(3)} FPS`, 5, 25);
     }
