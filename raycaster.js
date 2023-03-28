@@ -2,7 +2,7 @@
 var screenWidth = int(window.innerWidth * .75);
 var screenHeight = int(window.innerHeight * .75);
 
-document.getElementById("window-controls").style.width = int(window.innerWidth * .7466).toString() + 'px';
+document.getElementById("window-controls").style.width = int(window.innerWidth * .7456).toString() + 'px';
 
 // Dealing with canvas
 canvas.width = screenWidth;
