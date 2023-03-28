@@ -20,21 +20,40 @@
         color: #f0f0f0;
     }
 
+    .center {
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        position: absolute;
+    }
+
+    #window-controls {
+        background-color: black;
+        text-align: left;
+        padding-left: 0.5%;
+        padding-top: 0.55%;
+        margin: 0 auto;
+        height: 22.5px;
+        border-radius: 5px 5px 0px 0px;
+    }
+
     canvas {
-        top: 0;
-        bottom: 0;
-        left: 0;
-        right: 0;
-        margin: auto;
         cursor: none;
     }
 
 </style>
 
 <body>
+    <!--
     <h1>RachitCaster</h1>
     <p>by Rachit Kakkar</p>
-    <canvas id="canvas">Your browser doesn't support HTML5 Canvas</canvas>
+    -->
+    <div class="center">
+        <div id="window-controls">
+            <svg xmlns="http://www.w3.org/2000/svg" width="54" height="14" viewBox="0 0 54 14"><g fill="none" fill-rule="evenodd" transform="translate(1 1)"><circle cx="6" cy="6" r="6" fill="#FF5F56" stroke="#E0443E" stroke-width=".5"></circle><circle cx="26" cy="6" r="6" fill="#FFBD2E" stroke="#DEA123" stroke-width=".5"></circle><circle cx="46" cy="6" r="6" fill="#27C93F" stroke="#1AAB29" stroke-width=".5"></circle></g></svg>
+        </div>
+        <canvas id="canvas">Your browser doesn't support HTML5 Canvas</canvas>
+    </div>
     <!-- <p>Click to lock mouse cursor. Arrow keys or WASD to move.</p> -->
     <script src="raycaster.js"></script>
 </body>

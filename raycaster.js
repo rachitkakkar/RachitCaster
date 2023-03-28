@@ -1,6 +1,8 @@
 // Screen dimensions
-const screenWidth = int(window.innerWidth * .75);
-const screenHeight = int(window.innerHeight * .75);
+var screenWidth = int(window.innerWidth * .75);
+var screenHeight = int(window.innerHeight * .75);
+
+document.getElementById("window-controls").style.width = int(window.innerWidth * .7466).toString() + 'px';
 
 // Dealing with canvas
 canvas.width = screenWidth;
@@ -10,16 +12,16 @@ var ctx = canvas.getContext("2d");
 var screen = ctx.createImageData(screenWidth, screenHeight); // Create an image data object to draw pixels to
 
 // Instruction prompt animation, includes everything needed to render the animated prompt at the beginning
-let prompt_ = "CLICK TO LOCK MOUSE CURSOR. ARROW KEYS OR WASD TO MOVE."
-let promptY = -20;
-let speed = 75;
-let promptX = screenWidth / 2 - 5 * prompt_.length;
-let rectX = promptX - 2.5;
-let rectY = promptY - 20;
-let rectWidth = 10.5 * prompt_.length;
-let rectHeight = 25;
-let maxHeight = 35;
-let showPrompt = true;
+var prompt_ = "CLICK TO LOCK MOUSE CURSOR. ARROW KEYS OR WASD TO MOVE."
+var promptY = -20;
+var speed = 75;
+var promptX = screenWidth / 2 - 5 * prompt_.length;
+var rectX = promptX - 2.5;
+var rectY = promptY - 20;
+var rectWidth = 10.5 * prompt_.length;
+var rectHeight = 25;
+var maxHeight = 35;
+var showPrompt = true;
 
 // Variables needed for delta time calculation
 var now;
@@ -72,11 +74,11 @@ const mapHeight = 25;
 const map = generateMaze(mapWidth, mapHeight);
 
 // Minimap and crosshair values
-const blockSize = int(screenWidth / 120);
-const crosshairSizeShort = int(blockSize / 6);
-const crosshairSizeLong = int(crosshairSizeShort * 12);
-const padding = int(blockSize / 2);
-const playerSize = int(padding * 4/5);
+var blockSize = int(screenWidth / 120);
+var crosshairSizeShort = int(blockSize / 6);
+var crosshairSizeLong = int(crosshairSizeShort * 12);
+var padding = int(blockSize / 2);
+var playerSize = int(padding * 4/5);
 
 // Player
 const MOVE_SPEED = 3.25;
@@ -110,10 +112,10 @@ document.addEventListener("pointerlockchange", lockChangeAlert, false);
 
 function lockChangeAlert() {
     if (document.pointerLockElement === canvas) {
-        console.log('The pointer lock status is now locked');
+        console.log("The pointer lock status is now locked");
         document.addEventListener("mousemove", rotatePlayer, false);
     } else {
-        console.log('The pointer lock status is now unlocked');
+        console.log("The pointer lock status is now unlocked");
         document.removeEventListener("mousemove", rotatePlayer, false);
     }
 }  
