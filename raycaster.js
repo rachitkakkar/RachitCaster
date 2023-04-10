@@ -1,17 +1,23 @@
-// Screen dimensions
-var screenWidth = int(window.innerWidth * .75);
-var screenHeight = int(window.innerHeight * .75);
+/* 
+GLOBALS
+----------
+*/
 
-document.getElementById("window-controls").style.width = (int(window.innerWidth * .75) - 9.5).toString() + 'px';
+// Screen dimensions (scale to 75% of the screen window)
+var screenWidth = window.innerWidth * .75;
+var screenHeight = window.innerHeight * .75;
 
-// Dealing with canvas
+// Dealing with canvas (setting dimensions, creating context)
 canvas.width = screenWidth;
 canvas.height = screenHeight;
 
 var ctx = canvas.getContext("2d");
 var screen = ctx.createImageData(screenWidth, screenHeight); // Create an image data object to draw pixels to
 
-// Instruction prompt animation, includes everything needed to render the animated prompt at the beginning
+// Window control width (75% of the screen window minus 9.5px of padding)
+document.getElementById("window-controls").style.width = (canvas.width - 9.5).toString() + 'px';
+
+// Instruction prompt animation, includes everything needed to render the animated prompt at the beginning (calculated based on screen dimensions)
 var prompt_ = "CLICK TO LOCK MOUSE CURSOR. ARROW KEYS OR WASD TO MOVE."
 var promptY = -20;
 var speed = 75;
@@ -33,7 +39,8 @@ function generateMaze(mazeWidth, mazeHeight) {
     if (mazeWidth !== mazeHeight || mazeHeight % 2 !== 1) // Constraints to make the algorithm simple
         return "Error: Size must be odd and square!"
 
-    // Generate maze as a 2D array. 1 = WALL and 0 = SPACE. The maze starts as a solid block filled with ones.
+    // Generate maze as a 2D array: 1 = WALL and 0 = SPACE
+    // The maze starts as a solid block filled with ones.
     let maze = [];
     for (let x = 0; x < mazeWidth; x++) {
         let row = [];
@@ -43,37 +50,91 @@ function generateMaze(mazeWidth, mazeHeight) {
         maze.push(row);
     }
 
-    // Use the binary tree maze generation algorithm to carve out spaces in the block generated earlier. 
-    // The algorithm runs on everything except the two columns on the right and rows on the bottom.
-    for (let x = 1; x < mazeWidth-2; x += 2) {
+    // Use the binary tree maze generation algorithm to carve out spaces in the block generated earlier
+    // The algorithm runs on everything except the two columns on the right and rows on the bottom
+    for (let x = 1; x < mazeWidth-2; x += 2) { // Increment by 2 to modify every other value
+                                               // This is done to allow "walls" to exist in-between cells
         for (let y = 1; y < mazeHeight-2; y += 2) {
-            maze[x][y] = 0;
+            maze[x][y] = 0; // Carve out this value by setting it to 0
             
-            let direction;
-            if (x === 1 && y === 1)
+            let direction; // Choose a direction to carve out another wall and create a pathway
+            if (x === 1 && y === 1) // If this is the top left cell where the player is, set the direction to the right so the player is not facing a wall
                 direction = 0;
             else
-                direction = Math.floor(Math.random() * 2);
-            if (direction === 0)
+                direction = Math.floor(Math.random() * 2); // Otherwise, choose a random direction
+            if (direction === 0) // Carve out the right wall
                 maze[x+1][y] = 0;
-            if (direction === 1)
+            if (direction === 1) // Carve out the bottom wall
                 maze[x][y+1] = 0;
         }
     }
 
+    // Empty out every cell in the right-most and bottom-most corrider in order to make sure every area of the maze is accesible. 
+    // The width and height are subtracted by 1 in order to create a boundary around the outside of the maze.
     for (let y = 1; y < mazeHeight-1; y++)
         maze[mazeWidth-2][y] = 0; 
     for (let x = 1; x < mazeWidth-1; x++)
         maze[x][mazeHeight-2] = 0; 
+
+    /*
+    VISUAL DEMONSTRATION
+    --------------------------
+    1. Solid Square 2D Array of Blocks
+    #########
+    #########
+    #########
+    #########
+    #########
+    #########
+    #########
+    #########
+    #########
+    
+    2. Carve Out Every Other Block (Except The Two Right Columns and Two Bottom Rows)
+    #########
+    # # # ###
+    #########
+    # # # ###
+    #########
+    # # # ###
+    #########
+    # # # ###
+    #########
+
+    3. At The Same Time, Choose A Random Direction (Right Or Down) To Carve Out A Pathway For Each Of These Blocks 
+    #########                         #########
+    # ^ # ^##                         #   #  ##
+    ###^#####                         ### #####
+    # ^ # ###                         #   # ###
+    ###^#^### ----------------------> ### # ###
+    # ^ # ###                         #   # ###
+    #####^###                         ##### ###
+    #########                         #########
+    #########                         #########
+    ^ = Chosen cells to carve out
+
+    4. Carve Out The Right-most Column And Bottom-most Row
+    #########
+    #   #   #
+    ### ### #
+    #   # # #
+    ### # # #
+    #   # # #
+    ##### # #
+    #       #
+    #########
+
+    And Bam! We have a maze!
+    */
 
     return maze;
 }
 
 const mapWidth = 25;
 const mapHeight = 25;
-const map = generateMaze(mapWidth, mapHeight);
+const map = generateMaze(mapWidth, mapHeight); // 25 x 25 procedural maze
 
-// Minimap and crosshair values
+// Minimap and crosshair values (calculated based on screen dimensions)
 var blockSize = int(screenWidth / 120);
 var crosshairSizeShort = int(blockSize / 6);
 var crosshairSizeLong = int(crosshairSizeShort * 12);
@@ -250,8 +311,6 @@ function main() {
     deltaTime = (now - lastUpdate) / 1000;
     lastUpdate = now;
 
-    ctx.putImageData(screen, 0, 0);
-
     // Use delta time to calculate a smooth movement speed based on framerate
     let moveSpeed = MOVE_SPEED * deltaTime;
     // let rotationSpeed = ROTATION_SPEED * deltaTime;
@@ -372,7 +431,7 @@ function main() {
                                     (position.y + (rayDirection.y * perpendicularWallDistance)) * blockSize + padding);        
             raysOnMap.push(rayOnMap);
         }
-    
+        
         let lineHeight = int(screenHeight / perpendicularWallDistance);
         let drawStart = screenHeight / 2 - lineHeight / 2 + pitch;
         if (drawStart < 0)
