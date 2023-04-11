@@ -3,9 +3,13 @@ GLOBALS
 ----------
 */
 
-// Screen dimensions (scale to 75% of the screen window)
-var screenWidth = window.innerWidth * .75;
-var screenHeight = window.innerHeight * .75;
+// Screen dimensions (scale to 85% of the screen window)
+var screenWidth = window.innerWidth * .85;
+var screenHeight = window.innerHeight * .85;
+
+var scaleFactor = 2;
+var downscaledWidth = screenWidth / scaleFactor;
+var downscaledHeight = screenHeight / scaleFactor;
 
 // Dealing with canvas (setting dimensions, creating context)
 canvas.width = screenWidth;
@@ -316,8 +320,8 @@ function main() {
     // let rotationSpeed = ROTATION_SPEED * deltaTime;
     movePlayer(moveSpeed);
     
-    let clipPitch = 300;
-    if (screenHeight / 2 < 300) 
+    let clipPitch = 150;
+    if (screenHeight / 2 < 150) 
         clipPitch = screenHeight / 2;
     if (pitch < -clipPitch)
         pitch = -clipPitch;
@@ -361,14 +365,14 @@ function main() {
     // drawRectangle(screen, 0, 0, screenWidth, screenHeight / 2, 0, 191, 255);
     // drawRectangle(screen, 0, screenHeight / 2, screenWidth, screenHeight, 72, 171, 62);
 
-    for (let y = 0; y < screenHeight / 2 + pitch; y++) {
-        let dimFactor = mapValue(y, 0, screenHeight, 0.8, 2);
+    for (let y = 0; y < downscaledHeight + pitch * scaleFactor; y++) {
+        let dimFactor = mapValue(y, 0, downscaledHeight, 0.8, 2);
         drawLine(screen, new Vector2(0, y), new Vector2(screenWidth, y), 45 / dimFactor, 45 / dimFactor, 45 / dimFactor);
     }
     
     let raysOnMap = [];
-    for (let x = 0; x < screenWidth; x++) {
-        let cameraX = 2 * x / screenWidth - 1;
+    for (let x = 0; x < downscaledWidth; x++) {
+        let cameraX = 2 * x / downscaledWidth - 1;
         let rayDirection = new Vector2(direction.x + plane.x * cameraX, direction.y + plane.y * cameraX);
         
         let mapCoords = new Vector2(int(position.x), int(position.y));
@@ -432,13 +436,13 @@ function main() {
             raysOnMap.push(rayOnMap);
         }
         
-        let lineHeight = int(screenHeight / perpendicularWallDistance);
-        let drawStart = screenHeight / 2 - lineHeight / 2 + pitch;
+        let lineHeight = int(downscaledHeight / perpendicularWallDistance);
+        let drawStart = downscaledHeight / 2 - lineHeight / 2 + pitch;
         if (drawStart < 0)
             drawStart = 0;
-        let drawEnd = screenHeight / 2 + lineHeight / 2 + pitch;
-        if (drawEnd >= screenHeight)  
-            drawEnd = screenHeight - 1;
+        let drawEnd = downscaledHeight / 2 + lineHeight / 2 + pitch;
+        if (drawEnd >= downscaledHeight)  
+            drawEnd = downscaledHeight - 1;
 
         let wallX;
         if (side === 0)
@@ -455,7 +459,7 @@ function main() {
             textureCoords.x = textureWidth - textureCoords.x - 1;
 
         var step = 1.0 * textureHeight / lineHeight;
-        let texturePosition = (drawStart - pitch - screenHeight / 2 + lineHeight / 2) * step;
+        let texturePosition = (drawStart - pitch - downscaledHeight / 2 + lineHeight / 2) * step;
         for (let y = int(drawStart); y < int(drawEnd); y++) {
             textureCoords.y = int(texturePosition) & (textureHeight - 1);
             texturePosition += step;
@@ -488,7 +492,7 @@ function main() {
             let green = wallTexture.data[pixelindex+1] / dimFactor;
             let blue = wallTexture.data[pixelindex+2] / dimFactor;
 
-            drawPixel(screen, x, y, red, green, blue);
+            drawRectangle(screen, x * scaleFactor, y * scaleFactor, scaleFactor, scaleFactor, red, green, blue);
         }
 
         // Draw Wall and Ceiling (Vertically)
@@ -513,10 +517,10 @@ function main() {
         let currentDistance = 0.0;
 
         if (drawEnd < 0) 
-            drawEnd = screenHeight;
+            drawEnd = downscaledHeight;
 
-        for (let y = screenHeight; y > drawEnd-1; y--) {
-            currentDistance = screenHeight / (2.0 * (y - pitch) - screenHeight);
+        for (let y = downscaledHeight; y > drawEnd-1; y--) {
+            currentDistance = downscaledHeight / (2.0 * (y - pitch) - downscaledHeight);
     
             let weight = currentDistance / perpendicularWallDistance;
             
@@ -526,13 +530,13 @@ function main() {
             let floorTex = new Vector2(int(currentFloor.x * textureWidth) % textureWidth,
                                        int(currentFloor.y * textureHeight) % textureHeight);
 
-            let dimFactor = mapValue(y, drawEnd, screenHeight, 1.6, 0.8);
+            let dimFactor = 0.9 + (0.2 * (currentDistance));
             let pixelindex = (floorTex.y * textureWidth + floorTex.x) * 4;
             let red = groundTexture.data[pixelindex] / dimFactor;
             let green = groundTexture.data[pixelindex+1] / dimFactor;
             let blue = groundTexture.data[pixelindex+2] / dimFactor;
 
-            drawPixel(screen, x, y, red, green, blue);
+            drawRectangle(screen, x * scaleFactor, y * scaleFactor, scaleFactor, scaleFactor, red, green, blue);
         }
     }
 
