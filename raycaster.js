@@ -365,10 +365,12 @@ function main() {
     // drawRectangle(screen, 0, 0, screenWidth, screenHeight / 2 + pitch * 2, 0, 191, 255);
     // drawRectangle(screen, 0, screenHeight / 2, screenWidth, screenHeight, 72, 171, 62);
 
+    /*
     for (let y = 0; y < screenHeight / 2 + pitch * scaleFactor; y++) {
         let dimFactor = mapValue(y, 0, downscaledHeight, 0.8, 2);
         drawLine(screen, new Vector2(0, y), new Vector2(screenWidth, y), 45 / dimFactor, 45 / dimFactor, 45 / dimFactor);
     }
+    */
     
     let raysOnMap = [];
     for (let x = 0; x < downscaledWidth; x++) {
@@ -524,7 +526,32 @@ function main() {
         if (drawEnd < 0) 
             drawEnd = downscaledHeight;
 
-        for (let y = downscaledHeight; y > drawEnd-1; y--) {
+        for (let y = 0; y < drawStart-1; y++) {
+            currentDistance = downscaledHeight / (downscaledHeight - 2.0 * (y - pitch));
+            
+            let dimFactor = 0.9 + (0.2 * (currentDistance));
+            let fogPercentage = 0.08 * currentDistance;
+            
+            let weight = currentDistance / perpendicularWallDistance;
+            
+            let currentFloor = new Vector2(weight * floorWallPos.x + (1.0 - weight) * position.x,
+                                          weight * floorWallPos.y + (1.0 - weight) * position.y)
+    
+            let floorTex = new Vector2(int(currentFloor.x * textureWidth) % textureWidth,
+                                       int(currentFloor.y * textureHeight) % textureHeight);
+
+            let pixelindex = (floorTex.y * textureWidth + floorTex.x) * 4;
+            let red = groundTexture.data[pixelindex] / dimFactor;
+            red = red * (1 - fogPercentage) + fogPercentage * 22.5;
+            let green = groundTexture.data[pixelindex+1] / dimFactor;
+            green = green * (1 - fogPercentage) + fogPercentage * 0.1;
+            let blue = groundTexture.data[pixelindex+2] / dimFactor;
+            blue = blue * (1 - fogPercentage) + fogPercentage * 0.1;
+
+            drawRectangle(screen, x * scaleFactor, y * scaleFactor, scaleFactor, scaleFactor, red, green, blue);
+        }
+
+        for (let y = drawEnd-1; y < downscaledHeight; y++) {
             currentDistance = downscaledHeight / (2.0 * (y - pitch) - downscaledHeight);
     
             let weight = currentDistance / perpendicularWallDistance;
