@@ -4,12 +4,12 @@ GLOBALS
 */
 
 // Screen dimensions (scale to 85% of the screen window)
-var screenWidth = window.innerWidth * .85;
-var screenHeight = window.innerHeight * .85;
+var screenWidth = int(window.innerWidth * .85);
+var screenHeight = int(window.innerHeight * .85);
 
 var scaleFactor = 2;
-var downscaledWidth = screenWidth / scaleFactor;
-var downscaledHeight = screenHeight / scaleFactor;
+var downscaledWidth = int(screenWidth / scaleFactor);
+var downscaledHeight = int(screenHeight / scaleFactor);
 
 // Dealing with canvas (setting dimensions, creating context)
 canvas.width = screenWidth;
@@ -321,8 +321,8 @@ function main() {
     movePlayer(moveSpeed);
     
     let clipPitch = 150;
-    if (screenHeight / 2 < 150) 
-        clipPitch = screenHeight / 2;
+    if (downscaledHeight / 2 < 150) 
+        clipPitch = downscaledHeight / 2;
     if (pitch < -clipPitch)
         pitch = -clipPitch;
     if (pitch > clipPitch)
@@ -362,10 +362,10 @@ function main() {
     }
     */
 
-    // drawRectangle(screen, 0, 0, screenWidth, screenHeight / 2, 0, 191, 255);
+    // drawRectangle(screen, 0, 0, screenWidth, screenHeight / 2 + pitch * 2, 0, 191, 255);
     // drawRectangle(screen, 0, screenHeight / 2, screenWidth, screenHeight, 72, 171, 62);
 
-    for (let y = 0; y < downscaledHeight + pitch * scaleFactor; y++) {
+    for (let y = 0; y < screenHeight / 2 + pitch * scaleFactor; y++) {
         let dimFactor = mapValue(y, 0, downscaledHeight, 0.8, 2);
         drawLine(screen, new Vector2(0, y), new Vector2(screenWidth, y), 45 / dimFactor, 45 / dimFactor, 45 / dimFactor);
     }
