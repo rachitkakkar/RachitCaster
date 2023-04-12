@@ -464,7 +464,6 @@ function main() {
             textureCoords.y = int(texturePosition) & (textureHeight - 1);
             texturePosition += step;
 
-            let dimFactor = 0.8 + (0.2 * (perpendicularWallDistance));
             /*
             // Calculate the lighting of the texture based on the height of the line being rendered (which is based off of distance)
             let nearness;
@@ -486,11 +485,17 @@ function main() {
             }
             */
             
+            let dimFactor = 0.8 + (0.2 * perpendicularWallDistance);
+            let fogPercentage = 0.08 * perpendicularWallDistance;
+
             // Divide the actual pixel values of the texture by this "dimmess factor" to make it dimmer or brighter
             pixelindex = (textureCoords.y * textureWidth + textureCoords.x) * 4;
             let red = wallTexture.data[pixelindex] / dimFactor;
+            red = red * (1 - fogPercentage) + fogPercentage * 22.5;
             let green = wallTexture.data[pixelindex+1] / dimFactor;
+            green = green * (1 - fogPercentage) + fogPercentage * 0.1;
             let blue = wallTexture.data[pixelindex+2] / dimFactor;
+            blue = blue * (1 - fogPercentage) + fogPercentage * 0.1;
 
             drawRectangle(screen, x * scaleFactor, y * scaleFactor, scaleFactor, scaleFactor, red, green, blue);
         }
@@ -531,10 +536,15 @@ function main() {
                                        int(currentFloor.y * textureHeight) % textureHeight);
 
             let dimFactor = 0.9 + (0.2 * (currentDistance));
+            let fogPercentage = 0.08 * currentDistance;
+
             let pixelindex = (floorTex.y * textureWidth + floorTex.x) * 4;
             let red = groundTexture.data[pixelindex] / dimFactor;
+            red = red * (1 - fogPercentage) + fogPercentage * 22.5;
             let green = groundTexture.data[pixelindex+1] / dimFactor;
+            green = green * (1 - fogPercentage) + fogPercentage * 0.1;
             let blue = groundTexture.data[pixelindex+2] / dimFactor;
+            blue = blue * (1 - fogPercentage) + fogPercentage * 0.1;
 
             drawRectangle(screen, x * scaleFactor, y * scaleFactor, scaleFactor, scaleFactor, red, green, blue);
         }
