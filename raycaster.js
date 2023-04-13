@@ -503,22 +503,22 @@ function main() {
         }
 
         // Draw Wall and Ceiling (Vertically)
-        let floorWallPos = new Vector2();
-        if(side == 0 && rayDirection.x > 0) {
-            floorWallPos.x = mapCoords.x;
-            floorWallPos.y = mapCoords.y + wallX;
+        let floorCeilingWallPos = new Vector2();
+        if (side == 0 && rayDirection.x > 0) {
+            floorCeilingWallPos.x = mapCoords.x;
+            floorCeilingWallPos.y = mapCoords.y + wallX;
         }
-        else if(side == 0 && rayDirection.x < 0) {
-            floorWallPos.x = mapCoords.x + 1.0;
-            floorWallPos.y = mapCoords.y + wallX;
+        else if (side == 0 && rayDirection.x < 0) {
+            floorCeilingWallPos.x = mapCoords.x + 1.0;
+            floorCeilingWallPos.y = mapCoords.y + wallX;
         }
-        else if(side == 1 && rayDirection.y > 0) {
-            floorWallPos.x = mapCoords.x + wallX;
-            floorWallPos.y = mapCoords.y;
+        else if (side == 1 && rayDirection.y > 0) {
+            floorCeilingWallPos.x = mapCoords.x + wallX;
+            floorCeilingWallPos.y = mapCoords.y;
         }
         else {
-            floorWallPos.x = mapCoords.x + wallX;
-            floorWallPos.y = mapCoords.y + 1.0;
+            floorCeilingWallPos.x = mapCoords.x + wallX;
+            floorCeilingWallPos.y = mapCoords.y + 1.0;
         }
 
         let currentDistance = 0.0;
@@ -526,26 +526,26 @@ function main() {
         if (drawEnd < 0) 
             drawEnd = downscaledHeight;
 
-        for (let y = 0; y < drawStart-1; y++) {
+        for (let y = 0; y < drawStart+1; y++) {
             currentDistance = downscaledHeight / (downscaledHeight - 2.0 * (y - pitch));
-            
-            let dimFactor = 0.9 + (0.2 * (currentDistance));
-            let fogPercentage = 0.08 * currentDistance;
-            
+
             let weight = currentDistance / perpendicularWallDistance;
             
-            let currentFloor = new Vector2(weight * floorWallPos.x + (1.0 - weight) * position.x,
-                                          weight * floorWallPos.y + (1.0 - weight) * position.y)
+            let currentCeiling = new Vector2(weight * floorCeilingWallPos.x + (1.0 - weight) * position.x,
+                                          weight * floorCeilingWallPos.y + (1.0 - weight) * position.y)
     
-            let floorTex = new Vector2(int(currentFloor.x * textureWidth) % textureWidth,
-                                       int(currentFloor.y * textureHeight) % textureHeight);
+            let ceilingTex = new Vector2(int(currentCeiling.x * textureWidth) % textureWidth,
+                                       int(currentCeiling.y * textureHeight) % textureHeight);
 
-            let pixelindex = (floorTex.y * textureWidth + floorTex.x) * 4;
-            let red = groundTexture.data[pixelindex] / dimFactor;
+            let dimFactor = 1.5 + (0.2 * (currentDistance));
+            let fogPercentage = 0.08 * currentDistance;
+
+            let pixelindex = (ceilingTex.y * textureWidth + ceilingTex.x) * 4;
+            let red = ceilingTexture.data[pixelindex] / dimFactor;
             red = red * (1 - fogPercentage) + fogPercentage * 22.5;
-            let green = groundTexture.data[pixelindex+1] / dimFactor;
+            let green = ceilingTexture.data[pixelindex+1] / dimFactor;
             green = green * (1 - fogPercentage) + fogPercentage * 0.1;
-            let blue = groundTexture.data[pixelindex+2] / dimFactor;
+            let blue = ceilingTexture.data[pixelindex+2] / dimFactor;
             blue = blue * (1 - fogPercentage) + fogPercentage * 0.1;
 
             drawRectangle(screen, x * scaleFactor, y * scaleFactor, scaleFactor, scaleFactor, red, green, blue);
@@ -556,8 +556,8 @@ function main() {
     
             let weight = currentDistance / perpendicularWallDistance;
             
-            let currentFloor = new Vector2(weight * floorWallPos.x + (1.0 - weight) * position.x,
-                                          weight * floorWallPos.y + (1.0 - weight) * position.y)
+            let currentFloor = new Vector2(weight * floorCeilingWallPos.x + (1.0 - weight) * position.x,
+                                          weight * floorCeilingWallPos.y + (1.0 - weight) * position.y)
     
             let floorTex = new Vector2(int(currentFloor.x * textureWidth) % textureWidth,
                                        int(currentFloor.y * textureHeight) % textureHeight);
@@ -622,7 +622,7 @@ function main() {
 // Textures
 const textureWidth = 64;
 const textureHeight = 64;
-const textureUrls = ['textures/bricks.png', 'textures/tiles.png'];
+const textureUrls = ['textures/bricks.png', 'textures/tiles.png', 'textures/tiles.png'];
 
 loadImages(textureUrls).then(textures => {
     ctx.drawImage(textures[0], 0, 0);
@@ -630,6 +630,9 @@ loadImages(textureUrls).then(textures => {
 
     ctx.drawImage(textures[1], 0, 0);
     groundTexture = ctx.getImageData(0, 0, textureWidth, textureHeight);
+
+    ctx.drawImage(textures[2], 0, 0);
+    ceilingTexture = ctx.getImageData(0, 0, textureWidth, textureHeight);
 
     spriteArray = [
         Sprite(20.5, 11.5, '')
