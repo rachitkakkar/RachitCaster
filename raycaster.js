@@ -3,9 +3,9 @@ GLOBALS
 ----------
 */
 
-// Screen dimensions (scale to 85% of the screen window)
-var screenWidth = int(window.innerWidth * .85);
-var screenHeight = int(window.innerHeight * .85);
+// Screen dimensions (scale to 75% of the screen window)
+var screenWidth = int(window.innerWidth * .75);
+var screenHeight = int(window.innerHeight * .75);
 
 var scaleFactor = 2;
 var downscaledWidth = int(screenWidth / scaleFactor);
@@ -421,7 +421,7 @@ function main() {
                 side = 1;
             }
 
-            // Collision with wall
+            // Collision with normal wall
             if (map[mapCoords.x][mapCoords.y] > 0) 
                 hit = true;
         }
@@ -537,7 +537,7 @@ function main() {
             let ceilingTex = new Vector2(int(currentCeiling.x * textureWidth) % textureWidth,
                                        int(currentCeiling.y * textureHeight) % textureHeight);
 
-            let dimFactor = 1.5 + (0.2 * (currentDistance));
+            let dimFactor = 0.9 + (0.2 * (currentDistance));
             let fogPercentage = 0.08 * currentDistance;
 
             let pixelindex = (ceilingTex.y * textureWidth + ceilingTex.x) * 4;
@@ -588,7 +588,7 @@ function main() {
     for (let x = 0; x < mapWidth; x++) {
         for (let y = 0; y < mapHeight; y++) {
             if (map[x][y] > 0)
-                drawRectangle(screen, (x * blockSize) + (screenWidth - mapWidth * blockSize - padding), y * blockSize + padding, blockSize - 1, blockSize - 1, 255, 255, 255);                
+                drawRectangle(screen, (x * blockSize) + (screenWidth - mapWidth * blockSize - padding), y * blockSize + padding, blockSize - 1, blockSize - 1, 255, 255, 255);
         }
     }
 
