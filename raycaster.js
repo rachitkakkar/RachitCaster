@@ -169,7 +169,7 @@ var padding = int(blockSize / 2);
 var playerSize = int(padding * 4/5);
 
 // Player
-const MOVE_SPEED = 3.25;
+const MOVE_SPEED = 3.7;
 // const ROTATION_SPEED = 1.25;
 
 var position = new Vector2(1.5, 1.5);
@@ -325,8 +325,8 @@ function movePlayer(moveSpeed) {
 function rotatePlayer(event) {
     let differenceX = event.movementX / screenWidth;
     let differenceY = event.movementY / screenHeight;
-    let rotationSpeedX = (differenceX * 45) * deltaTime;
-    let rotationSpeedY = -(differenceY * 10000) * deltaTime;
+    let rotationSpeedX = (differenceX * 60) * deltaTime;
+    let rotationSpeedY = -(differenceY * 12000) * deltaTime;
 
     var newDirection = new Vector2();
     newDirection.x = direction.x * Math.cos(rotationSpeedX) - direction.y * Math.sin(rotationSpeedX);
