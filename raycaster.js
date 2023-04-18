@@ -264,8 +264,6 @@ function canMove(newPosition) {
         for (const door of doors) {
             if (door.trigger && door.state !== 'open') // Player has triggered door and door is not open
                 canMove = false;
-
-            console.log(door.state, canMove);
         }
     }
 
@@ -408,8 +406,7 @@ function main() {
     // Update doors
     for (const door of doors) {
         if (door.trigger) {
-            if (door.state === 'open')
-                door.trigger = false;
+            door.trigger = false;
         }
         else {
             if (door.state === 'open' || door.state === 'opening')
@@ -481,8 +478,15 @@ function main() {
 
             // Collision with door
             for (const door of doors) {
-                if (door.position.x === int(position.x) && door.position.y === int(position.y)) // Inside the same cell as door
-                    door.trigger = true;
+                if (door.side === 0) { // Horizontal
+                    if (position.x < door.position.x+1.45 && position.x > door.position.x-0.45 && int(position.y) === door.position.y) // X value close to door, same row
+                        door.trigger = true;
+                }
+
+                else { // Vertical
+                    if (position.y < door.position.y+1.45 && position.y > door.position.y-0.45 && int(position.x) === door.position.x)  // Y value close to door, same column
+                        door.trigger = true;
+                }
 
                 if (door.position.x === mapCoords.x && door.position.y === mapCoords.y) {
                     hit = true;
@@ -510,9 +514,6 @@ function main() {
                             hitDoor = false;
                         }
                     }
-
-                    if (hitDoor && (doorDistance <= 1 || door.state === 'opening')) // If within trigger distance of door or door is already opening
-                        door.trigger = true;
                 }
 
                 if (door.trigger) {
