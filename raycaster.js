@@ -413,7 +413,7 @@ function main() {
                 door.state = 'closing';
 
             if (door.offset > 0 && door.state === 'closing')
-                door.offset -= (deltaTime * 2);
+                door.offset -= deltaTime;
             if (door.offset <= 0)
                 door.state = 'closed';
         }
@@ -525,7 +525,7 @@ function main() {
                 }
 
                 if (door.offset < 0.95 && door.state === 'opening')
-                    door.offset += (deltaTime / 250);
+                    door.offset += (deltaTime / 500);
 
                 if (hitDoor) {
                     doorOffset = door.offset;
