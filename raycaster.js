@@ -148,18 +148,73 @@ function generateMaze(mazeWidth, mazeHeight) {
     return maze;
 }
 
-function generateDoors(map) {
-    return [new Door(new Vector2(4,1), 0.0, 'closed', 0)];
+function generateDoors(map, mapWidth, mapHeight) {
+    let doors = [];
+
+    let attempts = 0;
+    let giveUp = false;
+    while (doors.length < 5 && !giveUp) { // Vertical
+        let potentialX = Math.floor(Math.random() * (mapWidth-3)) + 1;
+        let potentialY = Math.max(Math.floor(Math.random() * (mapHeight-2)), 5);
+
+        let viable = true;
+
+        for (let i = 0; i < 5; i++) {
+            if (map[potentialX][potentialY - i] !== 0 || map[potentialX+1][potentialY] !== 1 || map[potentialX-1][potentialY] !== 1)
+                viable = false;
+        }
+
+        for (const door of doors) {
+            if (door.position.x === potentialX)
+                viable = false;
+        }
+
+        if (viable) {
+            doors.push(new Door(new Vector2(potentialX, potentialY), 0.0, 'closed', 1))
+            attempts = 0;
+        }
+
+        if (attempts >= 150)
+            giveUp = true;
+        attempts++;
+    }
+
+    
+    attempts = 0;
+    giveUp = false;
+    while (doors.length < 10 && !giveUp) { // Vertical
+        let potentialX = Math.max(Math.floor(Math.random() * (mapWidth-2)), 5);
+        let potentialY = Math.floor(Math.random() * (mapHeight-3)) + 1;
+
+        let viable = true;
+
+        for (let i = 0; i < 5; i++) {
+            if (map[potentialX - i][potentialY] !== 0 || map[potentialX][potentialY+1] !== 1 || map[potentialX][potentialY-1] !== 1)
+                viable = false;
+        }
+
+        for (const door of doors) {
+            if (door.position.y === potentialY)
+                viable = false;
+        }
+
+        if (viable) {
+            doors.push(new Door(new Vector2(potentialX, potentialY), 0.0, 'closed', 0))
+            attempts = 0;
+        }
+
+        if (attempts >= 150)
+            giveUp = true;
+        attempts++;
+    }
+
+    return doors;
 }
 
 const mapWidth = 25;
 const mapHeight = 25;
 const map = generateMaze(mapWidth, mapHeight); // 25 x 25 procedural maze
-var doors = generateDoors(map);
-
-// temp
-map[4][1] = 0;
-map[3][2] = 1;
+var doors = generateDoors(map, mapWidth, mapHeight);
 
 // Minimap and crosshair values (calculated based on screen dimensions)
 var blockSize = int(screenWidth / 120);
@@ -479,16 +534,16 @@ function main() {
             // Collision with door
             for (const door of doors) {
                 if (door.side === 0) { // Horizontal
-                    if (position.x < door.position.x+1.45 && position.x > door.position.x-0.45 && int(position.y) === door.position.y) // X value close to door, same row
+                    if (position.x < door.position.x+1.15 && position.x > door.position.x-0.15 && int(position.y) === door.position.y) // X value close to door, same row
                         door.trigger = true;
                 }
 
                 else { // Vertical
-                    if (position.y < door.position.y+1.45 && position.y > door.position.y-0.45 && int(position.x) === door.position.x)  // Y value close to door, same column
+                    if (position.y < door.position.y+1.15 && position.y > door.position.y-0.15 && int(position.x) === door.position.x)  // Y value close to door, same column
                         door.trigger = true;
                 }
 
-                if (door.position.x === mapCoords.x && door.position.y === mapCoords.y) {
+                if (door.position.x === mapCoords.x && door.position.y === mapCoords.y && !hitDoor) {
                     hit = true;
                     hitDoor = true;
                     let doorDistance;
@@ -514,6 +569,11 @@ function main() {
                             hitDoor = false;
                         }
                     }
+
+                    if (hitDoor) {
+                        doorOffset = door.offset;
+                        doorState = door.state;
+                    }
                 }
 
                 if (door.trigger) {
@@ -526,11 +586,6 @@ function main() {
 
                 if (door.offset < 0.95 && door.state === 'opening')
                     door.offset += (deltaTime / 500);
-
-                if (hitDoor) {
-                    doorOffset = door.offset;
-                    doorState = door.state;
-                }
             }
         }
 
@@ -721,6 +776,16 @@ function main() {
 
             adjustedDoorX = ((door.position.x + 0.5) * blockSize + (screenWidth - mapWidth * blockSize - padding)) - doorBlockWidth;
             adjustedDoorY = (door.position.y * blockSize + padding);
+            // adjustedDoorYEnd = (door.position.y + 0.5) * blockSize + padding;
+            drawRectangle(screen, adjustedDoorX, adjustedDoorY, doorBlockWidth, doorBlockLength, 200, 200, 200);
+        }
+
+        if (door.side === 1) {
+            doorBlockLength = 3; // 3 pixels
+            doorBlockWidth = (blockSize - 1) * (1.0 - door.offset); // 3 pixels
+
+            adjustedDoorX = (door.position.x * blockSize + (screenWidth - mapWidth * blockSize - padding));
+            adjustedDoorY = ((door.position.y + 0.5) * blockSize + padding) - doorBlockLength;
             // adjustedDoorYEnd = (door.position.y + 0.5) * blockSize + padding;
             drawRectangle(screen, adjustedDoorX, adjustedDoorY, doorBlockWidth, doorBlockLength, 200, 200, 200);
         }
