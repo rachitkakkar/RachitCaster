@@ -3,9 +3,9 @@ GLOBALS
 ----------
 */
 
-// Screen dimensions (scale to 77% of the screen window)
-var screenWidth = window.innerWidth * .77;
-var screenHeight = window.innerHeight * .77;
+// Screen dimensions (scale to 70% of the screen width and ensure 16:9 aspect ration)
+var screenWidth = int(window.innerWidth * .70);
+var screenHeight = int(screenWidth / 16) * 9;
 
 var scaleFactor = 2;
 var downscaledWidth = int(screenWidth / scaleFactor);
