@@ -4,8 +4,8 @@ GLOBALS
 */
 
 // Screen dimensions (scale to 70% of the screen width and ensure 16:9 aspect ration)
-var screenWidth = int(window.innerWidth * .70);
-var screenHeight = int(screenWidth / 16) * 9;
+var screenWidth = window.innerWidth * .70;
+var screenHeight = screenWidth / 16 * 9;
 
 var scaleFactor = 2;
 var downscaledWidth = int(screenWidth / scaleFactor);
@@ -126,7 +126,7 @@ function generateMaze(mazeWidth, mazeHeight) {
     # ^ # ###                         #   # ###
     ###^#^### ----------------------> ### # ###
     # ^ # ###                         #   # ###
-    #####^###                         ##### ###
+    ###^#^###                         ### # ###
     #########                         #########
     #########                         #########
     ^ = Chosen cells to carve out
@@ -138,7 +138,7 @@ function generateMaze(mazeWidth, mazeHeight) {
     #   # # #
     ### # # #
     #   # # #
-    ##### # #
+    ### # # #
     #       #
     #########
 
