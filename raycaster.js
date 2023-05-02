@@ -4,12 +4,17 @@ GLOBALS
 */
 
 // Screen dimensions (scale to 70% of the screen width and ensure 16:9 aspect ration)
-var screenWidth = window.innerWidth * .70;
-var screenHeight = screenWidth / 16 * 9;
+const screenWidth = window.innerWidth * .70;
+const screenHeight = screenWidth / 16 * 9;
 
-var scaleFactor = 2;
-var downscaledWidth = int(screenWidth / scaleFactor);
-var downscaledHeight = int(screenHeight / scaleFactor);
+const scaleFactor = 2;
+const downscaledWidth = int(screenWidth / scaleFactor);
+const downscaledHeight = int(screenHeight / scaleFactor);
+
+// Sprites
+var zBuffer = new Array(downscaledWidth);
+var spriteOrder = [];
+var spriteDistance = [];
 
 // Dealing with canvas (setting dimensions, creating context)
 canvas.width = screenWidth;
@@ -38,10 +43,11 @@ var now;
 var lastUpdate;
 var deltaTime;
 
-// Structure
+// Structures
 function Sprite(x, y, texture) {
     this.x = x;
     this.y = y;
+    this.texture = texture;
 }
 
 function Door(position, offset, state, side) {
