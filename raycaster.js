@@ -23,7 +23,7 @@ canvas.height = screenHeight;
 var ctx = canvas.getContext("2d");
 var screen = ctx.createImageData(screenWidth, screenHeight); // Create an image data object to draw pixels to
 
-// Window control width (77% of the screen window minus 9.5px of padding)
+// Window control width (70% of the screen window minus 9.5px of padding)
 document.getElementById("window-controls").style.width = (canvas.width - 9.5).toString() + 'px';
 
 // Instruction prompt animation, includes everything needed to render the animated prompt at the beginning (calculated based on screen dimensions)
@@ -475,8 +475,10 @@ function main() {
 
             if (door.offset > 0 && door.state === 'closing')
                 door.offset -= deltaTime;
-            if (door.offset <= 0)
+            if (door.offset <= 0) {
                 door.state = 'closed';
+                door.offset = 0;
+            }
         }
     }
     
@@ -778,20 +780,20 @@ function main() {
     for (const door of doors) {
         if (door.side === 0) {
             doorBlockLength = (blockSize - 1) * (1.0 - door.offset);
-            doorBlockWidth = 3; // 3 pixels
+            doorBlockWidth = int(blockSize / 2.5);
 
-            adjustedDoorX = ((door.position.x + 0.5) * blockSize + (screenWidth - mapWidth * blockSize - padding)) - doorBlockWidth;
+            adjustedDoorX = ((door.position.x + 0.5) * blockSize + (screenWidth - mapWidth * blockSize - padding)) - doorBlockWidth / 1.5;
             adjustedDoorY = (door.position.y * blockSize + padding);
             // adjustedDoorYEnd = (door.position.y + 0.5) * blockSize + padding;
             drawRectangle(screen, adjustedDoorX, adjustedDoorY, doorBlockWidth, doorBlockLength, 200, 200, 200);
         }
 
         if (door.side === 1) {
-            doorBlockLength = 3; // 3 pixels
+            doorBlockLength = int(blockSize / 2.5); // 3 pixels
             doorBlockWidth = (blockSize - 1) * (1.0 - door.offset); // 3 pixels
 
             adjustedDoorX = (door.position.x * blockSize + (screenWidth - mapWidth * blockSize - padding));
-            adjustedDoorY = ((door.position.y + 0.5) * blockSize + padding) - doorBlockLength;
+            adjustedDoorY = ((door.position.y + 0.5) * blockSize + padding) - doorBlockLength / 1.5;
             // adjustedDoorYEnd = (door.position.y + 0.5) * blockSize + padding;
             drawRectangle(screen, adjustedDoorX, adjustedDoorY, doorBlockWidth, doorBlockLength, 200, 200, 200);
         }
