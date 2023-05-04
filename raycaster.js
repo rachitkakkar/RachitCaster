@@ -3,11 +3,11 @@ GLOBALS
 ----------
 */
 
-// Screen dimensions (scale to 70% of the screen width and ensure 16:9 aspect ration)
-const screenWidth = window.innerWidth * .70;
-const screenHeight = screenWidth / 16 * 9;
+// Screen dimensions
+const screenWidth = window.innerWidth;
+const screenHeight = window.innerHeight;
 
-const scaleFactor = 2;
+const scaleFactor = 4;
 const downscaledWidth = int(screenWidth / scaleFactor);
 const downscaledHeight = int(screenHeight / scaleFactor);
 
@@ -24,7 +24,7 @@ var ctx = canvas.getContext("2d");
 var screen = ctx.createImageData(screenWidth, screenHeight); // Create an image data object to draw pixels to
 
 // Window control width (70% of the screen window minus 9.5px of padding)
-document.getElementById("window-controls").style.width = (canvas.width - 9.5).toString() + 'px';
+// document.getElementById("window-controls").style.width = (canvas.width - 9.5).toString() + 'px';
 
 // Instruction prompt animation, includes everything needed to render the animated prompt at the beginning (calculated based on screen dimensions)
 var prompt_ = "CLICK TO LOCK MOUSE CURSOR. ARROW KEYS OR WASD TO MOVE."
@@ -122,7 +122,7 @@ function generateMaze(mazeWidth, mazeHeight) {
     #########
     # # # ###
     #########
-    # # # ###
+    #########
     #########
 
     3. At The Same Time, Choose A Random Direction (Right Or Down) To Carve Out A Pathway For Each Of These Blocks 
@@ -593,7 +593,7 @@ function main() {
                 }
 
                 if (door.offset < 0.95 && door.state === 'opening')
-                    door.offset += (deltaTime / 500);
+                    door.offset += (deltaTime * 0.003);
             }
         }
 
@@ -784,17 +784,15 @@ function main() {
 
             adjustedDoorX = ((door.position.x + 0.5) * blockSize + (screenWidth - mapWidth * blockSize - padding)) - doorBlockWidth / 1.5;
             adjustedDoorY = (door.position.y * blockSize + padding);
-            // adjustedDoorYEnd = (door.position.y + 0.5) * blockSize + padding;
             drawRectangle(screen, adjustedDoorX, adjustedDoorY, doorBlockWidth, doorBlockLength, 200, 200, 200);
         }
 
         if (door.side === 1) {
-            doorBlockLength = int(blockSize / 2.5); // 3 pixels
-            doorBlockWidth = (blockSize - 1) * (1.0 - door.offset); // 3 pixels
+            doorBlockLength = int(blockSize / 2.5);
+            doorBlockWidth = (blockSize - 1) * (1.0 - door.offset);
 
             adjustedDoorX = (door.position.x * blockSize + (screenWidth - mapWidth * blockSize - padding));
             adjustedDoorY = ((door.position.y + 0.5) * blockSize + padding) - doorBlockLength / 1.5;
-            // adjustedDoorYEnd = (door.position.y + 0.5) * blockSize + padding;
             drawRectangle(screen, adjustedDoorX, adjustedDoorY, doorBlockWidth, doorBlockLength, 200, 200, 200);
         }
     }
