@@ -3,9 +3,58 @@ GLOBALS
 ----------
 */
 
-// Screen dimensions
-const screenWidth = int(window.innerWidth / 1.8);
-const screenHeight = int(screenWidth * 5 / 8);
+// Screen dimensions (scale to 80% of screenwidth and enforce 9 / 16 aspect ratio)
+const screenWidth = window.innerWidth * 0.8;
+const screenHeight = screenWidth * 9/16;
+
+const scaleFactor = 1;
+var xOffset = 2; // Used to control which specific columns of pixels are being rendered each frame
+const downscaledWidth = int(screenWidth / scaleFactor);
+const downscaledHeight = int(screenHeight / scaleFactor);
+
+// Sprites
+var zBuffer = new Array(downscaledWidth);
+var spriteOrder = [];
+var spriteDistance = [];
+
+// Dealing with canvas (setting dimensions, creating context)
+canvas.width = screenWidth;
+canvas.height = screenHeight;
+
+var ctx = canvas.getContext("2d");
+var screen = ctx.createImageData(screenWidth, screenHeight); // Create an image data object to draw pixels to
+
+// Instruction prompt animation, includes everything needed to render the animated prompt at the beginning (calculated based on screen dimensions)
+var prompt_ = "CLICK TO LOCK MOUSE CURSOR. ARROW KEYS OR WASD TO MOVE."
+var promptY = -20;
+var speed = 75;
+var promptX = screenWidth / 2 - 5 * prompt_.length;
+var rectX = promptX - 2.5;
+var rectY = promptY - 20;
+var rectWidth = 10.5 * prompt_.length;
+var rectHeight = 25;
+var maxHeight = 35;
+var showPrompt = true;
+
+// Variables needed for delta time calculation
+var now;
+var lastUpdate;
+var deltaTime;
+
+// Structures
+function Sprite(x, y, texture) {
+    this.x = x;
+    this.y = y;
+    this.texture = texture;
+}
+
+function Door(position, offset, state, side) {
+    this.position = position;
+    this.offset = offset;
+    this.state = state;
+    this.side = side;
+    this.trigger = false;
+}
 
 // World representation
 function generateMaze(mazeWidth, mazeHeight) {
@@ -103,14 +152,6 @@ function generateMaze(mazeWidth, mazeHeight) {
     return maze;
 }
 
-function Door(position, offset, state, side) {
-    this.position = position;
-    this.offset = offset;
-    this.state = state;
-    this.side = side;
-    this.trigger = false;
-}
-
 function generateDoors(map, mapWidth, mapHeight) {
     let doors = [];
 
@@ -180,51 +221,11 @@ const map = generateMaze(mapWidth, mapHeight); // 25 x 25 procedural maze
 var doors = generateDoors(map, mapWidth, mapHeight);
 
 // Minimap and crosshair values (calculated based on screen dimensions)
-var blockSize = Math.round(screenHeight / mapHeight);
+var blockSize = int(screenWidth / 110);
 var crosshairSizeShort = int(blockSize / 6);
 var crosshairSizeLong = int(crosshairSizeShort * 12);
-var playerSize = int(blockSize / 2 * 4/5);
-
-// Dealing with canvas (setting dimensions, creating context)
-canvas.width = screenWidth + (blockSize * mapWidth);
-canvas.height = blockSize * mapHeight;
-var ctx = canvas.getContext("2d");
-var screen = ctx.createImageData(canvas.width, canvas.height); // Create an image data object to draw pixels to
-
-// const scaleFactor = 2;
-// const downscaledWidth = int(screenWidth / scaleFactor);
-// const downscaledHeight = int(screenHeight / scaleFactor);
-
-// Sprites
-function Sprite(x, y, texture) {
-    this.x = x;
-    this.y = y;
-    this.texture = texture;
-}
-
-var zBuffer = new Array(screenWidth);
-var spriteOrder = [];
-var spriteDistance = [];
-
-// Window control width (70% of the screen window minus 9.5px of padding)
-// document.getElementById("window-controls").style.width = (canvas.width - 9.5).toString() + 'px';
-
-// Instruction prompt animation, includes everything needed to render the animated prompt at the beginning (calculated based on screen dimensions)
-var prompt_ = "CLICK TO LOCK MOUSE CURSOR. ARROW KEYS OR WASD TO MOVE."
-var promptY = -20;
-var speed = 75;
-var promptX = screenWidth / 2 - 5 * prompt_.length;
-var rectX = promptX - 2.5;
-var rectY = promptY - 20;
-var rectWidth = 10.5 * prompt_.length;
-var rectHeight = 25;
-var maxHeight = 35;
-var showPrompt = true;
-
-// Variables needed for delta time calculation
-var now;
-var lastUpdate;
-var deltaTime;
+var padding = int(blockSize / 2);
+var playerSize = int(padding * 4/5);
 
 // Player
 const MOVE_SPEED = 3.7;
@@ -410,8 +411,8 @@ function main() {
     movePlayer(moveSpeed);
     
     let clipPitch = 150;
-    if (screenHeight / 2 < clipPitch) 
-        clipPitch = screenHeight / 2;
+    if (downscaledHeight / 2 < clipPitch) 
+        clipPitch = downscaledHeight / 2;
     if (pitch < -clipPitch)
         pitch = -clipPitch;
     if (pitch > clipPitch)
@@ -456,7 +457,7 @@ function main() {
 
     /*
     for (let y = 0; y < screenHeight / 2 + pitch * scaleFactor; y++) {
-        let dimFactor = mapValue(y, 0, screenHeight, 0.8, 2);
+        let dimFactor = mapValue(y, 0, downscaledHeight, 0.8, 2);
         drawLine(screen, new Vector2(0, y), new Vector2(screenWidth, y), 45 / dimFactor, 45 / dimFactor, 45 / dimFactor);
     }
     */
@@ -480,8 +481,9 @@ function main() {
     }
     
     let raysOnMap = [];
-    for (let x = 0; x < screenWidth; x++) {
-        let cameraX = 2 * x / screenWidth - 1;
+    xOffset++;
+    for (let x = (xOffset % 2); x < downscaledWidth; x += 2) {
+        let cameraX = 2 * x / downscaledWidth - 1;
         let rayDirection = new Vector2(direction.x + plane.x * cameraX, direction.y + plane.y * cameraX);
         
         let mapCoords = new Vector2(int(position.x), int(position.y));
@@ -590,7 +592,7 @@ function main() {
                 }
 
                 if (door.offset < 0.95 && door.state === 'opening')
-                    door.offset += (deltaTime * 0.0015);
+                    door.offset += (deltaTime * 0.003);
             }
         }
 
@@ -611,17 +613,17 @@ function main() {
             perpendicularWallDistance = (sideDistance.y - deltaDistance.y);
         }
 
-        let rayOnMap = new Vector2(((position.x + (rayDirection.x * perpendicularWallDistance)) * blockSize) + screenWidth,
-                                    (position.y + (rayDirection.y * perpendicularWallDistance)) * blockSize);        
+        let rayOnMap = new Vector2(((position.x + (rayDirection.x * perpendicularWallDistance)) * blockSize) + (screenWidth - mapWidth * blockSize - padding),
+                                    (position.y + (rayDirection.y * perpendicularWallDistance)) * blockSize + padding);        
         raysOnMap.push(rayOnMap);
         
-        let lineHeight = int(screenHeight / perpendicularWallDistance);
-        let drawStart = screenHeight / 2 - lineHeight / 2 + pitch;
+        let lineHeight = int(downscaledHeight / perpendicularWallDistance);
+        let drawStart = downscaledHeight / 2 - lineHeight / 2 + pitch;
         if (drawStart < 0)
             drawStart = 0;
-        let drawEnd = screenHeight / 2 + lineHeight / 2 + pitch;
-        if (drawEnd >= screenHeight)
-            drawEnd = screenHeight - 1;
+        let drawEnd = downscaledHeight / 2 + lineHeight / 2 + pitch;
+        if (drawEnd >= downscaledHeight)
+            drawEnd = downscaledHeight - 1;
 
         let wallX;
         if (side === 0)
@@ -641,7 +643,7 @@ function main() {
             textureCoords.x = textureWidth - textureCoords.x - 1;
 
         var step = 1.0 * textureHeight / lineHeight;
-        let texturePosition = (drawStart - pitch - screenHeight / 2 + lineHeight / 2) * step;
+        let texturePosition = (drawStart - pitch - downscaledHeight / 2 + lineHeight / 2) * step;
         for (let y = int(drawStart)+1; y < int(drawEnd)+1; y++) {
             textureCoords.y = int(texturePosition) & (textureHeight - 1);
             texturePosition += step;
@@ -685,7 +687,7 @@ function main() {
             let blue = selectedTexture.data[pixelindex+2] / dimFactor;
             blue = blue * (1 - fogPercentage) + fogPercentage * 0.1;
 
-            drawPixel(screen, x, y, red, green, blue);
+            drawRectangle(screen, x * scaleFactor, y * scaleFactor, scaleFactor, scaleFactor, red, green, blue);
         }
 
         // Draw Wall and Ceiling (Vertically)
@@ -710,10 +712,10 @@ function main() {
         let currentDistance = 0.0;
 
         if (drawEnd < 0) 
-            drawEnd = screenHeight;
+            drawEnd = downscaledHeight;
 
         for (let y = 0; y < int(drawStart)+1; y++) {
-            currentDistance = screenHeight / (screenHeight - 2.0 * (y - pitch));
+            currentDistance = downscaledHeight / (downscaledHeight - 2.0 * (y - pitch));
 
             let weight = currentDistance / perpendicularWallDistance;
             
@@ -734,12 +736,11 @@ function main() {
             let blue = ceilingTexture.data[pixelindex+2] / dimFactor;
             blue = blue * (1 - fogPercentage) + fogPercentage * 0.1;
 
-            drawPixel(screen, x, y, red, green, blue);
-
+            drawRectangle(screen, x * scaleFactor, y * scaleFactor, scaleFactor, scaleFactor, red, green, blue);
         }
 
-        for (let y = int(drawEnd)+1; y < screenHeight; y++) {
-            currentDistance = screenHeight / (2.0 * (y - pitch) - screenHeight);
+        for (let y = int(drawEnd)+1; y < downscaledHeight; y++) {
+            currentDistance = downscaledHeight / (2.0 * (y - pitch) - downscaledHeight);
     
             let weight = currentDistance / perpendicularWallDistance;
             
@@ -760,15 +761,14 @@ function main() {
             let blue = groundTexture.data[pixelindex+2] / dimFactor;
             blue = blue * (1 - fogPercentage) + fogPercentage * 0.1;
 
-            drawPixel(screen, x, y, red, green, blue);
-
+            drawRectangle(screen, x * scaleFactor, y * scaleFactor, scaleFactor, scaleFactor, red, green, blue);
         }
     }
 
     // Render minimap
-    drawRectangle(screen, screenWidth, 0, mapWidth * blockSize, mapHeight * blockSize, 66, 66, 66);
-    let adjustedPosition = new Vector2((position.x * blockSize) + screenWidth,
-                                       position.y * blockSize); 
+    drawRectangle(screen, (screenWidth - mapWidth * blockSize - padding), padding, mapWidth * blockSize, mapHeight * blockSize, 66, 66, 66);
+    let adjustedPosition = new Vector2((position.x * blockSize) + (screenWidth - mapWidth * blockSize - padding),
+                                       position.y * blockSize + padding); 
     drawFilledCircle(screen, adjustedPosition.x, adjustedPosition.y, playerSize, 255, 92, 92);
     raysOnMap.forEach(rayOnMap =>
         drawLine(screen, adjustedPosition, rayOnMap, 255, 92, 92)
@@ -779,8 +779,8 @@ function main() {
             doorBlockLength = (blockSize - 1) * (1.0 - door.offset);
             doorBlockWidth = int(blockSize / 2.5);
 
-            adjustedDoorX = ((door.position.x + 0.5) * blockSize + screenWidth) - doorBlockWidth / 1.5;
-            adjustedDoorY = (door.position.y * blockSize);
+            adjustedDoorX = ((door.position.x + 0.5) * blockSize + (screenWidth - mapWidth * blockSize - padding)) - doorBlockWidth / 1.5;
+            adjustedDoorY = (door.position.y * blockSize + padding);
             drawRectangle(screen, adjustedDoorX, adjustedDoorY, doorBlockWidth, doorBlockLength, 200, 200, 200);
         }
 
@@ -788,8 +788,8 @@ function main() {
             doorBlockLength = int(blockSize / 2.5);
             doorBlockWidth = (blockSize - 1) * (1.0 - door.offset);
 
-            adjustedDoorX = (door.position.x * blockSize + screenWidth);
-            adjustedDoorY = ((door.position.y + 0.5) * blockSize) - doorBlockLength / 1.5;
+            adjustedDoorX = (door.position.x * blockSize + (screenWidth - mapWidth * blockSize - padding));
+            adjustedDoorY = ((door.position.y + 0.5) * blockSize + padding) - doorBlockLength / 1.5;
             drawRectangle(screen, adjustedDoorX, adjustedDoorY, doorBlockWidth, doorBlockLength, 200, 200, 200);
         }
     }
@@ -797,7 +797,7 @@ function main() {
     for (let x = 0; x < mapWidth; x++) {
         for (let y = 0; y < mapHeight; y++) {
             if (map[x][y] > 0)
-                drawRectangle(screen, (x * blockSize) + screenWidth, y * blockSize, blockSize - 1, blockSize - 1, 255, 255, 255);
+                drawRectangle(screen, (x * blockSize) + (screenWidth - mapWidth * blockSize - padding), y * blockSize + padding, blockSize - 1, blockSize - 1, 255, 255, 255);
         }
     }
 
