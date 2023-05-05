@@ -12,11 +12,6 @@ var xOffset = 2; // Used to control which specific columns of pixels are being r
 const downscaledWidth = int(screenWidth / scaleFactor);
 const downscaledHeight = int(screenHeight / scaleFactor);
 
-// Sprites
-var zBuffer = new Array(downscaledWidth);
-var spriteOrder = [];
-var spriteDistance = [];
-
 // Dealing with canvas (setting dimensions, creating context)
 canvas.width = screenWidth;
 canvas.height = screenHeight;
@@ -845,10 +840,6 @@ loadImages(textureUrls).then(textures => {
 
     ctx.drawImage(textures[3], 0, 0);
     doorTexture = ctx.getImageData(0, 0, textureWidth, textureHeight);
-
-    spriteArray = [
-        Sprite(20.5, 11.5, '')
-    ]
     
     requestAnimationFrame(main);
 });
