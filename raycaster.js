@@ -4,7 +4,7 @@ GLOBALS
 */
 
 // Screen dimensions (scale to 70% of screenwidth and enforce 9 / 16 aspect ratio)
-const screenWidth = window.innerWidth * 0.70;
+const screenWidth = window.innerWidth * 0.6;
 const screenHeight = screenWidth * 9/16;
 
 const scaleFactor = 1;
