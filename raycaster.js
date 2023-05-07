@@ -1,14 +1,10 @@
 import { loadImage, loadImages, drawPixel, drawRectangle, drawVerticalLine, drawLine, eightWayPlot, drawCircle, drawFilledCircle, int, Vector2 } from "./lib.js";
 import { Prompt } from "./src/Prompt.js";
+import { Timer } from "./src/Timer.js";
 
 // Screen dimensions (scale to 70% of screenwidth and enforce 9 / 16 aspect ratio)
 const screenWidth = window.innerWidth * 0.6;
 const screenHeight = screenWidth * 9/16;
-
-const scaleFactor = 1;
-var xOffset = 2; // Used to control which specific columns of pixels are being rendered each frame
-const downscaledWidth = int(screenWidth / scaleFactor);
-const downscaledHeight = int(screenHeight / scaleFactor);
 
 // Dealing with canvas (setting dimensions, creating context)
 canvas.width = screenWidth;
@@ -21,9 +17,7 @@ var screen = ctx.createImageData(screenWidth, screenHeight); // Create an image 
 var instructionPrompt = new Prompt("CLICK TO LOCK MOUSE CURSOR. ARROW KEYS OR WASD TO MOVE.", screenWidth);
 
 // Variables needed for delta time calculation
-var now;
-var lastUpdate;
-var deltaTime;
+var timer = new Timer();
 
 // Structures
 function Sprite(x, y, texture) {
@@ -357,7 +351,7 @@ function movePlayer(moveSpeed) {
     }
 
     if (moved) {
-        walkTime += deltaTime;
+        walkTime += timer.getDeltaTime();
         pitch += (Math.cos(10 * walkTime) / 2 * 4.5);
     }
 }
@@ -365,8 +359,8 @@ function movePlayer(moveSpeed) {
 function rotatePlayer(event) {
     let differenceX = event.movementX / screenWidth;
     let differenceY = event.movementY / screenHeight;
-    let rotationSpeedX = (differenceX * 60) * deltaTime;
-    let rotationSpeedY = -(differenceY * 12000) * deltaTime;
+    let rotationSpeedX = (differenceX * 60) * timer.getDeltaTime();
+    let rotationSpeedY = -(differenceY * 12000) * timer.getDeltaTime();
 
     var newDirection = new Vector2();
     newDirection.x = direction.x * Math.cos(rotationSpeedX) - direction.y * Math.sin(rotationSpeedX);
@@ -384,18 +378,16 @@ function rotatePlayer(event) {
 // Main loop
 function main() {
     // Calculate delta time
-    now = Date.now();
-    deltaTime = (now - lastUpdate) / 1000;
-    lastUpdate = now;
+    timer.calculateDeltaTime();
 
     // Use delta time to calculate a smooth movement speed based on framerate
-    let moveSpeed = MOVE_SPEED * deltaTime;
-    // let rotationSpeed = ROTATION_SPEED * deltaTime;
+    let moveSpeed = MOVE_SPEED * timer.getDeltaTime();
+    // let rotationSpeed = ROTATION_SPEED * timer.getDeltaTime();
     movePlayer(moveSpeed);
     
     let clipPitch = 150;
-    if (downscaledHeight / 2 < clipPitch) 
-        clipPitch = downscaledHeight / 2;
+    if (screenHeight / 2 < clipPitch) 
+        clipPitch = screenHeight / 2;
     if (pitch < -clipPitch)
         pitch = -clipPitch;
     if (pitch > clipPitch)
@@ -435,16 +427,6 @@ function main() {
     }
     */
 
-    // drawRectangle(screen, 0, 0, screenWidth, screenHeight / 2 + pitch * 2, 0, 191, 255);
-    // drawRectangle(screen, 0, screenHeight / 2, screenWidth, screenHeight, 72, 171, 62);
-
-    /*
-    for (let y = 0; y < screenHeight / 2 + pitch * scaleFactor; y++) {
-        let dimFactor = mapValue(y, 0, downscaledHeight, 0.8, 2);
-        drawLine(screen, new Vector2(0, y), new Vector2(screenWidth, y), 45 / dimFactor, 45 / dimFactor, 45 / dimFactor);
-    }
-    */
-
     // Update doors
     for (const door of doors) {
         if (door.trigger) {
@@ -455,7 +437,7 @@ function main() {
                 door.state = 'closing';
 
             if (door.offset > 0 && door.state === 'closing')
-                door.offset -= deltaTime;
+                door.offset -= timer.getDeltaTime();
             if (door.offset <= 0) {
                 door.state = 'closed';
                 door.offset = 0;
@@ -464,9 +446,8 @@ function main() {
     }
     
     let raysOnMap = [];
-    xOffset++;
-    for (let x = (xOffset % 2); x < downscaledWidth; x += 2) {
-        let cameraX = 2 * x / downscaledWidth - 1;
+    for (let x = 0; x < screenWidth; x++) {
+        let cameraX = 2 * x / screenWidth - 1;
         let rayDirection = new Vector2(direction.x + plane.x * cameraX, direction.y + plane.y * cameraX);
         
         let mapCoords = new Vector2(int(position.x), int(position.y));
@@ -575,7 +556,7 @@ function main() {
                 }
 
                 if (door.offset < 0.95 && door.state === 'opening')
-                    door.offset += (deltaTime * 0.003);
+                    door.offset += (timer.getDeltaTime() * 0.003);
             }
         }
 
@@ -600,13 +581,13 @@ function main() {
                                     (position.y + (rayDirection.y * perpendicularWallDistance)) * blockSize + padding);        
         raysOnMap.push(rayOnMap);
         
-        let lineHeight = int(downscaledHeight / perpendicularWallDistance);
-        let drawStart = downscaledHeight / 2 - lineHeight / 2 + pitch;
+        let lineHeight = int(screenHeight / perpendicularWallDistance);
+        let drawStart = screenHeight / 2 - lineHeight / 2 + pitch;
         if (drawStart < 0)
             drawStart = 0;
-        let drawEnd = downscaledHeight / 2 + lineHeight / 2 + pitch;
-        if (drawEnd >= downscaledHeight)
-            drawEnd = downscaledHeight - 1;
+        let drawEnd = screenHeight / 2 + lineHeight / 2 + pitch;
+        if (drawEnd >= screenHeight)
+            drawEnd = screenHeight - 1;
 
         let wallX;
         if (side === 0)
@@ -626,7 +607,7 @@ function main() {
             textureCoords.x = textureWidth - textureCoords.x - 1;
 
         var step = 1.0 * textureHeight / lineHeight;
-        let texturePosition = (drawStart - pitch - downscaledHeight / 2 + lineHeight / 2) * step;
+        let texturePosition = (drawStart - pitch - screenHeight / 2 + lineHeight / 2) * step;
         for (let y = int(drawStart)+1; y < int(drawEnd)+1; y++) {
             textureCoords.y = int(texturePosition) & (textureHeight - 1);
             texturePosition += step;
@@ -670,7 +651,7 @@ function main() {
             let blue = selectedTexture.data[pixelindex+2] / dimFactor;
             blue = blue * (1 - fogPercentage) + fogPercentage * 0.1;
 
-            drawRectangle(screen, x * scaleFactor, y * scaleFactor, scaleFactor, scaleFactor, red, green, blue);
+            drawPixel(screen, x, y, red, green, blue);
         }
 
         // Draw Wall and Ceiling (Vertically)
@@ -695,10 +676,10 @@ function main() {
         let currentDistance = 0.0;
 
         if (drawEnd < 0) 
-            drawEnd = downscaledHeight;
+            drawEnd = screenHeight;
 
         for (let y = 0; y < int(drawStart)+1; y++) {
-            currentDistance = downscaledHeight / (downscaledHeight - 2.0 * (y - pitch));
+            currentDistance = screenHeight / (screenHeight - 2.0 * (y - pitch));
 
             let weight = currentDistance / perpendicularWallDistance;
             
@@ -719,11 +700,11 @@ function main() {
             let blue = ceilingTexture.data[pixelindex+2] / dimFactor;
             blue = blue * (1 - fogPercentage) + fogPercentage * 0.1;
 
-            drawRectangle(screen, x * scaleFactor, y * scaleFactor, scaleFactor, scaleFactor, red, green, blue);
+            drawPixel(screen, x, y, red, green, blue);
         }
 
-        for (let y = int(drawEnd)+1; y < downscaledHeight; y++) {
-            currentDistance = downscaledHeight / (2.0 * (y - pitch) - downscaledHeight);
+        for (let y = int(drawEnd)+1; y < screenHeight; y++) {
+            currentDistance = screenHeight / (2.0 * (y - pitch) - screenHeight);
     
             let weight = currentDistance / perpendicularWallDistance;
             
@@ -744,7 +725,7 @@ function main() {
             let blue = groundTexture.data[pixelindex+2] / dimFactor;
             blue = blue * (1 - fogPercentage) + fogPercentage * 0.1;
 
-            drawRectangle(screen, x * scaleFactor, y * scaleFactor, scaleFactor, scaleFactor, red, green, blue);
+            drawPixel(screen, x, y, red, green, blue);
         }
     }
 
@@ -790,12 +771,12 @@ function main() {
     
     ctx.putImageData(screen, 0, 0);
 
-    instructionPrompt.update(deltaTime);
+    instructionPrompt.update(timer.getDeltaTime());
     instructionPrompt.render(ctx);
 
     ctx.font = "18px Helvetica";
     ctx.fillStyle = "white";
-    ctx.fillText(`${(1 / deltaTime).toFixed(3)} FPS`, 5, 25);
+    ctx.fillText(`${(1 / timer.getDeltaTime()).toFixed(3)} FPS`, 5, 25);
 
     requestAnimationFrame(main);
 }

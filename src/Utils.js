@@ -1,4 +1,10 @@
 // Image utils
+
+/**
+ * Loads an image.
+ *
+ * @param {string} imageUrl The path to the image.
+ */
 export async function loadImage(imageUrl) {
     let img;
     const imageLoadPromise = new Promise(resolve => {
@@ -11,6 +17,11 @@ export async function loadImage(imageUrl) {
     return img;
 }
 
+/**
+ * Loads multiple images.
+ *
+ * @param {string} imageUrl The path to the image.
+ */
 export async function loadImages(imageUrlArray) {
     const promiseArray = [];
     const imageArray = [];
