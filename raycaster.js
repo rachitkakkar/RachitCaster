@@ -1,7 +1,5 @@
-/* 
-GLOBALS
-----------
-*/
+import { loadImage, loadImages, drawPixel, drawRectangle, drawVerticalLine, drawLine, eightWayPlot, drawCircle, drawFilledCircle, int, Vector2 } from "./lib.js";
+import { Prompt } from "./src/Prompt.js";
 
 // Screen dimensions (scale to 70% of screenwidth and enforce 9 / 16 aspect ratio)
 const screenWidth = window.innerWidth * 0.6;
@@ -20,16 +18,7 @@ var ctx = canvas.getContext("2d");
 var screen = ctx.createImageData(screenWidth, screenHeight); // Create an image data object to draw pixels to
 
 // Instruction prompt animation, includes everything needed to render the animated prompt at the beginning (calculated based on screen dimensions)
-var prompt_ = "CLICK TO LOCK MOUSE CURSOR. ARROW KEYS OR WASD TO MOVE."
-var promptY = -20;
-var speed = 75;
-var promptX = screenWidth / 2 - 5 * prompt_.length;
-var rectX = promptX - 2.5;
-var rectY = promptY - 20;
-var rectWidth = 10.5 * prompt_.length;
-var rectHeight = 25;
-var maxHeight = 35;
-var showPrompt = true;
+var instructionPrompt = new Prompt("CLICK TO LOCK MOUSE CURSOR. ARROW KEYS OR WASD TO MOVE.", screenWidth);
 
 // Variables needed for delta time calculation
 var now;
@@ -247,8 +236,7 @@ canvas.addEventListener("click", async () => {
       });
     }
 
-    if (showPrompt)
-        showPrompt = false;
+    instructionPrompt.hide();
 });
 document.addEventListener("pointerlockchange", lockChangeAlert, false);
 
@@ -674,7 +662,7 @@ function main() {
                 selectedTexture = wallTexture;
 
             // Divide the actual pixel values of the texture by this "dimmess factor" to make it dimmer or brighter
-            pixelindex = (textureCoords.y * textureWidth + textureCoords.x) * 4;
+            let pixelindex = (textureCoords.y * textureWidth + textureCoords.x) * 4;
             let red = selectedTexture.data[pixelindex] / dimFactor;
             red = red * (1 - fogPercentage) + fogPercentage * 0.1;
             let green = selectedTexture.data[pixelindex+1] / dimFactor;
@@ -771,20 +759,20 @@ function main() {
     
     for (const door of doors) {
         if (door.side === 0) {
-            doorBlockLength = (blockSize - 1) * (1.0 - door.offset);
-            doorBlockWidth = int(blockSize / 2.5);
+            let doorBlockLength = (blockSize - 1) * (1.0 - door.offset);
+            let doorBlockWidth = int(blockSize / 2.5);
 
-            adjustedDoorX = ((door.position.x + 0.5) * blockSize + (screenWidth - mapWidth * blockSize - padding)) - doorBlockWidth / 1.5;
-            adjustedDoorY = (door.position.y * blockSize + padding);
+            let adjustedDoorX = ((door.position.x + 0.5) * blockSize + (screenWidth - mapWidth * blockSize - padding)) - doorBlockWidth / 1.5;
+            let adjustedDoorY = (door.position.y * blockSize + padding);
             drawRectangle(screen, adjustedDoorX, adjustedDoorY, doorBlockWidth, doorBlockLength, 200, 200, 200);
         }
 
         if (door.side === 1) {
-            doorBlockLength = int(blockSize / 2.5);
-            doorBlockWidth = (blockSize - 1) * (1.0 - door.offset);
+            let doorBlockLength = int(blockSize / 2.5);
+            let doorBlockWidth = (blockSize - 1) * (1.0 - door.offset);
 
-            adjustedDoorX = (door.position.x * blockSize + (screenWidth - mapWidth * blockSize - padding));
-            adjustedDoorY = ((door.position.y + 0.5) * blockSize + padding) - doorBlockLength / 1.5;
+            let adjustedDoorX = (door.position.x * blockSize + (screenWidth - mapWidth * blockSize - padding));
+            let adjustedDoorY = ((door.position.y + 0.5) * blockSize + padding) - doorBlockLength / 1.5;
             drawRectangle(screen, adjustedDoorX, adjustedDoorY, doorBlockWidth, doorBlockLength, 200, 200, 200);
         }
     }
@@ -802,23 +790,12 @@ function main() {
     
     ctx.putImageData(screen, 0, 0);
 
-    ctx.font = "17px Helvetica";
-    if (showPrompt) {
-        ctx.fillStyle = "white";
-        ctx.fillRect(rectX, rectY, rectWidth, rectHeight);
-        ctx.fillStyle = "black";
-        ctx.fillText(prompt_, promptX, promptY);
-        if (promptY < maxHeight) {
-            promptY += int(speed * deltaTime);
-            rectY += int(speed * deltaTime);
-        }
-    }
+    instructionPrompt.update(deltaTime);
+    instructionPrompt.render(ctx);
 
-    else {
-        ctx.font = "18px Helvetica";
-        ctx.fillStyle = "white";
-        ctx.fillText(`${(1 / deltaTime).toFixed(3)} FPS`, 5, 25);
-    }
+    ctx.font = "18px Helvetica";
+    ctx.fillStyle = "white";
+    ctx.fillText(`${(1 / deltaTime).toFixed(3)} FPS`, 5, 25);
 
     requestAnimationFrame(main);
 }
@@ -827,6 +804,11 @@ function main() {
 const textureWidth = 64;
 const textureHeight = 64;
 const textureUrls = ['textures/bricks.png', 'textures/tiles.png', 'textures/tiles.png', 'textures/door.png'];
+
+var wallTexture;
+var groundTexture;
+var ceilingTexture;
+var doorTexture;
 
 loadImages(textureUrls).then(textures => {
     ctx.drawImage(textures[0], 0, 0);

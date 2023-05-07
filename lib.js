@@ -1,5 +1,5 @@
-// Util functions
-async function loadImage(imageUrl) {
+// Util export functions
+export async function loadImage(imageUrl) {
     let img;
     const imageLoadPromise = new Promise(resolve => {
         img = new Image();
@@ -11,7 +11,7 @@ async function loadImage(imageUrl) {
     return img;
 }
 
-async function loadImages(imageUrlArray) {
+export async function loadImages(imageUrlArray) {
     const promiseArray = [];
     const imageArray = [];
 
@@ -29,8 +29,8 @@ async function loadImages(imageUrlArray) {
     return imageArray;
 }
 
-// Drawing functions
-function drawPixel(screen, x, y, red, green, blue) {
+// Drawing export functions
+export function drawPixel(screen, x, y, red, green, blue) {
     let pixelindex = (int(y) * screen.width + int(x)) * 4;
     
     screen.data[pixelindex] = red;
@@ -40,7 +40,7 @@ function drawPixel(screen, x, y, red, green, blue) {
 }
 
 /*
-function getPixel(screen, x, y) {
+export function getPixel(screen, x, y) {
     let pixelindex = (y * screenWidth + x) * 4;
     let red = screen.data[pixelindex]
     let green = screen.data[pixelindex+1];
@@ -50,7 +50,7 @@ function getPixel(screen, x, y) {
 }
 */
 
-function drawRectangle(screen, x, y, width, height, red, green, blue) {
+export function drawRectangle(screen, x, y, width, height, red, green, blue) {
     for (let xOffset = 0; xOffset < width; xOffset++) {
         for (let yOffset = 0; yOffset < height; yOffset++) {
             drawPixel(screen, int(x) + xOffset, int(y) + yOffset, red, green, blue);
@@ -58,13 +58,13 @@ function drawRectangle(screen, x, y, width, height, red, green, blue) {
     }
 }
 
-function drawVerticalLine(screen, x, start, end, red, green, blue) {
+export function drawVerticalLine(screen, x, start, end, red, green, blue) {
     for (let y = int(start); y <= int(end); y++) {
         drawPixel(screen, x, y, red, green, blue);
     }
 }
 
-function drawLine(screen, p1, p2, red, green, blue) {
+export function drawLine(screen, p1, p2, red, green, blue) {
     // Create copies so the original values aren't affected (just in case!)
     let point1 = new Vector2(int(p1.x), int(p1.y));
     let point2 = new Vector2(int(p2.x), int(p2.y));
@@ -97,7 +97,7 @@ function drawLine(screen, p1, p2, red, green, blue) {
     }
 }
 
-function eightWayPlot(screen, xc, yc, x, y, red, green, blue) {
+export function eightWayPlot(screen, xc, yc, x, y, red, green, blue) {
     drawPixel(screen, xc+x, yc+y, red, green, blue);
     drawPixel(screen, xc-x, yc+y, red, green, blue);
     drawPixel(screen, xc+x, yc-y, red, green, blue);
@@ -108,7 +108,7 @@ function eightWayPlot(screen, xc, yc, x, y, red, green, blue) {
     drawPixel(screen, xc-y, yc-x, red, green, blue);
 }
 
-function drawCircle(screen, centerX, centerY, radius, red, green, blue) { // Bresenham’s circle drawing algorithm
+export function drawCircle(screen, centerX, centerY, radius, red, green, blue) { // Bresenham’s circle drawing algorithm
     let x = 0;
     let y = radius;
     let d = 3 - 2 * radius;
@@ -127,7 +127,7 @@ function drawCircle(screen, centerX, centerY, radius, red, green, blue) { // Bre
     }
 }
 
-function drawFilledCircle(screen, centerX, centerY, radius, red, green, blue) { // Solution from StackOverflow
+export function drawFilledCircle(screen, centerX, centerY, radius, red, green, blue) { // Solution from StackOverflow
     for (let x = -radius; x < radius ; x++) {
         let hh = int(Math.sqrt(radius * radius - x * x));
         let rx = centerX + x;
@@ -139,20 +139,20 @@ function drawFilledCircle(screen, centerX, centerY, radius, red, green, blue) { 
 }
 
 /*
-function drawPixel(x, y, color)
+export function drawPixel(x, y, color)
 {
     ctx.fillStyle = color;
     ctx.fillRect(x, y, 1, 1);
 }
 
-function drawPixelBlock(x, y, width, height, color)
+export function drawPixelBlock(x, y, width, height, color)
 {
     ctx.fillStyle = color;
     ctx.fillRect(x, y, width, height);
 }
 */
 
-function clearScreen(screen) {
+export function clearScreen(screen) {
     for (let i = 0; i < screen.width; i++) {
         for (let j = 0; j < screen.height; j++) {
             drawPixel(screen, i, j, 0, 0, 0);
@@ -160,20 +160,20 @@ function clearScreen(screen) {
     }
 }
 
-// Math functions
-function int(value) { // Originally parseInt(), but it was very slow and affected performance considerably
+// Math export functions
+export function int(value) { // Originally parseInt(), but it was very slow and affected performance considerably
     return ~~value; 
 }
 
-function float(value) { 
+export function float(value) { 
     return parseFloat(value); 
 }
 
-function RGBToHex(r, g, b) {
+export function RGBToHex(r, g, b) {
     return "#" + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
 }
 
-function RGBToInt(red, green, blue) {
+export function RGBToInt(red, green, blue) {
     var r = red & 0xFF;
     var g = green & 0xFF;
     var b = blue & 0xFF;
@@ -181,7 +181,7 @@ function RGBToInt(red, green, blue) {
     return (r << 24) + (g << 16) + (b << 8) + 255;
 }
 
-function intToRGB(i) {
+export function intToRGB(i) {
     return {
         red: i >> 24 & 0xFF,
         green: i >> 16 & 0xFF,
@@ -189,7 +189,7 @@ function intToRGB(i) {
     }
 }
 
-function mapValue(value, leftMin, leftMax, rightMin, rightMax)
+export function mapValue(value, leftMin, leftMax, rightMin, rightMax)
 {
     var leftSpan = leftMax - leftMin;
     var rightSpan = rightMax - rightMin;
@@ -197,7 +197,7 @@ function mapValue(value, leftMin, leftMax, rightMin, rightMax)
     return rightMin + (valueScaled * rightSpan);
 }
 
-function swapPoints(point1, point2) {
+export function swapPoints(point1, point2) {
     let temp = point1.x;
     point1.x = point2.x;
     point2.x = temp;
@@ -207,7 +207,7 @@ function swapPoints(point1, point2) {
     point2.y = temp;
 }
 
-function interpolate(i0, d0, i1, d1) {
+export function interpolate(i0, d0, i1, d1) {
     let values = [];
     let a = (d1 - d0) / (i1 - i0);
     let d = d0;
@@ -219,7 +219,7 @@ function interpolate(i0, d0, i1, d1) {
     return values;
 }
 
-function Vector2(x, y) {
+export function Vector2(x, y) {
     this.x = x;
     this.y = y;
 }
