@@ -2,9 +2,9 @@ import { loadImage, loadImages, drawPixel, drawRectangle, drawVerticalLine, draw
 import { Prompt } from "./src/Prompt.js";
 import { Timer } from "./src/Timer.js";
 
-// Screen dimensions (scale to 70% of screenwidth and enforce 9 / 16 aspect ratio)
-const screenWidth = window.innerWidth * 0.6;
-const screenHeight = screenWidth * 9/16;
+// Screen dimensions (scaled to 70% of window)
+const screenWidth = window.innerWidth * 0.7;
+const screenHeight = window.innerHeight * 0.7;
 
 // Dealing with canvas (setting dimensions, creating context)
 canvas.width = screenWidth;
@@ -352,7 +352,7 @@ function movePlayer(moveSpeed) {
 
     if (moved) {
         walkTime += timer.getDeltaTime();
-        pitch += (Math.cos(10 * walkTime) / 2 * 4.5);
+        pitch += (Math.cos(10 * walkTime) / 2 * 8);
     }
 }
 
@@ -385,7 +385,7 @@ function main() {
     // let rotationSpeed = ROTATION_SPEED * timer.getDeltaTime();
     movePlayer(moveSpeed);
     
-    let clipPitch = 150;
+    let clipPitch = 230;
     if (screenHeight / 2 < clipPitch) 
         clipPitch = screenHeight / 2;
     if (pitch < -clipPitch)
@@ -556,7 +556,7 @@ function main() {
                 }
 
                 if (door.offset < 0.95 && door.state === 'opening')
-                    door.offset += (timer.getDeltaTime() * 0.003);
+                    door.offset += (timer.getDeltaTime() * 0.0015);
             }
         }
 
