@@ -1,17 +1,18 @@
 import { loadImage, loadImages, drawPixel, drawRectangle, drawVerticalLine, drawLine, eightWayPlot, drawCircle, drawFilledCircle, int, Vector2 } from "./lib.js";
+import { RenderBuffer } from "./src/RenderBuffer.js";
 import { Prompt } from "./src/Prompt.js";
 import { Timer } from "./src/Timer.js";
 
 // Screen dimensions (scaled to 70% of window)
-const screenWidth = window.innerWidth * 0.7;
-const screenHeight = window.innerHeight * 0.7;
+const screenWidth = int(window.innerWidth * 0.7);
+const screenHeight = int(window.innerHeight * 3/4);
 
 // Dealing with canvas (setting dimensions, creating context)
 canvas.width = screenWidth;
 canvas.height = screenHeight;
 
 var ctx = canvas.getContext("2d");
-var screen = ctx.createImageData(screenWidth, screenHeight); // Create an image data object to draw pixels to
+var renderer = new RenderBuffer(screenWidth, screenHeight, ctx);
 
 // Instruction prompt animation, includes everything needed to render the animated prompt at the beginning (calculated based on screen dimensions)
 var instructionPrompt = new Prompt("CLICK TO LOCK MOUSE CURSOR. ARROW KEYS OR WASD TO MOVE.", screenWidth);
@@ -392,40 +393,6 @@ function main() {
         pitch = -clipPitch;
     if (pitch > clipPitch)
         pitch = clipPitch;
-    
-    // Draw floor and ceiling (Horizontally)
-    /*
-    let leftRayDirection = new Vector2(direction.x - plane.x, direction.y - plane.y);
-    let rightRayDirection = new Vector2(direction.x + plane.x, direction.y + plane.y);
-    for (let y = 0; y < screenHeight; y++) {
-        let p = y - screenHeight / 2;
-        let posZ = 0.5 * screenHeight;
-        let rowDistance = posZ / p;
-
-        let floorStep = new Vector2(rowDistance * (rightRayDirection.x - leftRayDirection.x) / screenWidth, 
-                                rowDistance * (rightRayDirection.y - leftRayDirection.y) / screenWidth); 
-        let floor = new Vector2(position.x + rowDistance * leftRayDirection.x, position.y + rowDistance * leftRayDirection.y);
-
-        let dimFactor = 0.8 + (((screenHeight - y - 1) / 5) * 0.01);
-
-        for (let x = 0; x < screenWidth; x++) {
-            let cell = new Vector2(int(floor.x), int(floor.y));
-            let textureCoords = new Vector2(int(textureWidth * (floor.x - cell.x)) & (textureWidth - 1),
-                                            int(textureHeight * (floor.y - cell.y)) & (textureHeight - 1));
-
-            floor.x += floorStep.x;
-            floor.y += floorStep.y;
-            
-            let pixelindex = (textureCoords.y * textureWidth + textureCoords.x) * 4;
-            let red = groundTexture.data[pixelindex] / dimFactor;
-            let green = groundTexture.data[pixelindex+1] / dimFactor;
-            let blue = groundTexture.data[pixelindex+2] / dimFactor;
-
-            drawPixel(screen, x, y, red, green, blue);
-            drawPixel(screen, x, screenHeight - y - 1, 0 / dimFactor, 191 / dimFactor, 255 / dimFactor);
-        }
-    }
-    */
 
     // Update doors
     for (const door of doors) {
@@ -611,27 +578,6 @@ function main() {
         for (let y = int(drawStart)+1; y < int(drawEnd)+1; y++) {
             textureCoords.y = int(texturePosition) & (textureHeight - 1);
             texturePosition += step;
-
-            /*
-            // Calculate the lighting of the texture based on the height of the line being rendered (which is based off of distance)
-            let nearness;
-            if (lineHeight > 100) // If the line is bigger than a 100 pixels, make it full brightness
-                nearness = 100;
-            else
-                nearness = lineHeight;
-
-            // Add 0.01 to the "dimness factor" for every pixel in the difference between the line height and a 100 pixels
-            let dimFactor = 0.8 + (0.01 * (100 - nearness)); // Make the max "dimness factor" 0.8 so it is slightly brighter than the actual texture
-            */
-            /*
-            let dimFactor = 0.8;
-            let temp = dimFactor;
-            for (let i = 100; i >= 0; i -= 1) {
-                temp += 0.01;
-                if (lineHeight < i)
-                    dimFactor = temp;
-            }
-            */
             
             let dimFactor = 0.8 + (0.2 * perpendicularWallDistance);
             let fogPercentage = 0.08 * perpendicularWallDistance;
@@ -651,7 +597,7 @@ function main() {
             let blue = selectedTexture.data[pixelindex+2] / dimFactor;
             blue = blue * (1 - fogPercentage) + fogPercentage * 0.1;
 
-            drawPixel(screen, x, y, red, green, blue);
+            renderer.drawPixel(x, y, red, green, blue);
         }
 
         // Draw Wall and Ceiling (Vertically)
@@ -700,7 +646,7 @@ function main() {
             let blue = ceilingTexture.data[pixelindex+2] / dimFactor;
             blue = blue * (1 - fogPercentage) + fogPercentage * 0.1;
 
-            drawPixel(screen, x, y, red, green, blue);
+            renderer.drawPixel(x, y, red, green, blue);
         }
 
         for (let y = int(drawEnd)+1; y < screenHeight; y++) {
@@ -725,18 +671,19 @@ function main() {
             let blue = groundTexture.data[pixelindex+2] / dimFactor;
             blue = blue * (1 - fogPercentage) + fogPercentage * 0.1;
 
-            drawPixel(screen, x, y, red, green, blue);
+            renderer.drawPixel(x, y, red, green, blue);
         }
     }
 
     // Render minimap
-    drawRectangle(screen, (screenWidth - mapWidth * blockSize - padding), padding, mapWidth * blockSize, mapHeight * blockSize, 66, 66, 66);
+    renderer.drawRectangle((screenWidth - mapWidth * blockSize - padding), padding, mapWidth * blockSize, mapHeight * blockSize, 66, 66, 66);
     let adjustedPosition = new Vector2((position.x * blockSize) + (screenWidth - mapWidth * blockSize - padding),
                                        position.y * blockSize + padding); 
-    drawFilledCircle(screen, adjustedPosition.x, adjustedPosition.y, playerSize, 255, 92, 92);
+    renderer.drawFilledCircle(adjustedPosition.x, adjustedPosition.y, playerSize, 255, 92, 92);
     raysOnMap.forEach(rayOnMap =>
-        drawLine(screen, adjustedPosition, rayOnMap, 255, 92, 92)
+        renderer.drawLine(adjustedPosition, rayOnMap, 255, 92, 92)
     );
+    renderer.drawCircle(adjustedPosition.x, adjustedPosition.y, playerSize, 255, 255, 255);
     
     for (const door of doors) {
         if (door.side === 0) {
@@ -745,7 +692,7 @@ function main() {
 
             let adjustedDoorX = ((door.position.x + 0.5) * blockSize + (screenWidth - mapWidth * blockSize - padding)) - doorBlockWidth / 1.5;
             let adjustedDoorY = (door.position.y * blockSize + padding);
-            drawRectangle(screen, adjustedDoorX, adjustedDoorY, doorBlockWidth, doorBlockLength, 200, 200, 200);
+            renderer.drawRectangle(adjustedDoorX, adjustedDoorY, doorBlockWidth, doorBlockLength, 200, 200, 200);
         }
 
         if (door.side === 1) {
@@ -754,29 +701,27 @@ function main() {
 
             let adjustedDoorX = (door.position.x * blockSize + (screenWidth - mapWidth * blockSize - padding));
             let adjustedDoorY = ((door.position.y + 0.5) * blockSize + padding) - doorBlockLength / 1.5;
-            drawRectangle(screen, adjustedDoorX, adjustedDoorY, doorBlockWidth, doorBlockLength, 200, 200, 200);
+            renderer.drawRectangle(adjustedDoorX, adjustedDoorY, doorBlockWidth, doorBlockLength, 200, 200, 200);
         }
     }
 
     for (let x = 0; x < mapWidth; x++) {
         for (let y = 0; y < mapHeight; y++) {
             if (map[x][y] > 0)
-                drawRectangle(screen, (x * blockSize) + (screenWidth - mapWidth * blockSize - padding), y * blockSize + padding, blockSize - 1, blockSize - 1, 255, 255, 255);
+                renderer.drawRectangle((x * blockSize) + (screenWidth - mapWidth * blockSize - padding), y * blockSize + padding, blockSize - 1, blockSize - 1, 255, 255, 255);
         }
     }
 
     // Render crosshair
-    drawRectangle(screen, screenWidth / 2, screenHeight / 2 - 9, 2, 20, 255, 255, 255);
-    drawRectangle(screen, screenWidth / 2 - 10 + 1, screenHeight / 2, 20, 2, 255, 255, 255);
+    renderer.drawRectangle(screenWidth / 2, screenHeight / 2 - 9, 2, 20, 255, 255, 255);
+    renderer.drawRectangle(screenWidth / 2 - 10 + 1, screenHeight / 2, 20, 2, 255, 255, 255);
     
-    ctx.putImageData(screen, 0, 0);
+    renderer.renderBuffer(ctx);
 
     instructionPrompt.update(timer.getDeltaTime());
     instructionPrompt.render(ctx);
 
-    ctx.font = "18px Helvetica";
-    ctx.fillStyle = "white";
-    ctx.fillText(`${(1 / timer.getDeltaTime()).toFixed(3)} FPS`, 5, 25);
+    renderer.drawWhiteText("18px Helvetica", `${(1 / timer.getDeltaTime()).toFixed(3)} FPS`, 5, 25, ctx);
 
     requestAnimationFrame(main);
 }

@@ -1,5 +1,8 @@
 // Image utils
 
+// TODO:
+// - Fully Comment
+
 /**
  * Loads an image.
  *
@@ -27,7 +30,6 @@ export async function loadImages(imageUrlArray) {
     const imageArray = [];
 
     for (let imageUrl of imageUrlArray) {
-
         promiseArray.push(new Promise(resolve => {
             const img = new Image();
             img.onload = resolve;
