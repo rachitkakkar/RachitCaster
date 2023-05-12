@@ -1,11 +1,10 @@
 <div align="center">
     <h1>RachitCaster</h1>
-
-![Picture of the raycaster](/demo.png)
     <blockquote>
         A retro-style raycaster written using HTMl 5 Canvas and pure Javascript.
     </blockquote>
 </div>
+![Picture of the raycaster](/demo.png)
 
 # Status
 MAJOR WORK IN PROGRESS, THE CODE IS BEING REFACTORED TO AN OBJECT BASED MODEL WITH COMMENTS (JSDOC) IN `src/`
