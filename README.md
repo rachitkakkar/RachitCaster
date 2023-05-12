@@ -4,6 +4,7 @@
         A retro-style raycaster written using HTMl 5 Canvas and pure Javascript.
     </blockquote>
 </div>
+
 ![Picture of the raycaster](/demo.png)
 
 # Status
