@@ -1,19 +1,17 @@
-import { RenderBuffer } from "./src/RenderBuffer.js";
+import { loadImage, loadImages, drawPixel, drawRectangle, drawVerticalLine, drawLine, eightWayPlot, drawCircle, drawFilledCircle, int, Vector2 } from "./lib.js";
 import { Prompt } from "./src/Prompt.js";
 import { Timer } from "./src/Timer.js";
 
-import * as Utils from "./src/Utils.js";
-
 // Screen dimensions (scaled to 70% of window)
-const screenWidth = Utils.castToInt(window.innerWidth * 0.7);
-const screenHeight = Utils.castToInt(window.innerHeight * 3/4);
+const screenWidth = window.innerWidth * 0.7;
+const screenHeight = window.innerHeight * 0.7;
 
 // Dealing with canvas (setting dimensions, creating context)
 canvas.width = screenWidth;
 canvas.height = screenHeight;
 
 var ctx = canvas.getContext("2d");
-var renderer = new RenderBuffer(screenWidth, screenHeight, ctx);
+var screen = ctx.createImageData(screenWidth, screenHeight); // Create an image data object to draw pixels to
 
 // Instruction prompt animation, includes everything needed to render the animated prompt at the beginning (calculated based on screen dimensions)
 var instructionPrompt = new Prompt("CLICK TO LOCK MOUSE CURSOR. ARROW KEYS OR WASD TO MOVE.", screenWidth);
@@ -41,8 +39,6 @@ function generateMaze(mazeWidth, mazeHeight) {
     if (mazeWidth !== mazeHeight || mazeHeight % 2 !== 1) // Constraints to make the algorithm simple
         return "Error: Size must be odd and square!"
 
-    // Generate maze as a 2D array: 1 = WALL and 0 = SPACE
-    // The maze starts as a solid block filled with ones.
     let maze = [];
     for (let x = 0; x < mazeWidth; x++) {
         let row = [];
@@ -52,83 +48,35 @@ function generateMaze(mazeWidth, mazeHeight) {
         maze.push(row);
     }
 
-    // Use the binary tree maze generation algorithm to carve out spaces in the block generated earlier
-    // The algorithm runs on everything except the two columns on the right and rows on the bottom
-    for (let x = 1; x < mazeWidth-2; x += 2) { // Increment by 2 to modify every other value
-                                               // This is done to allow "walls" to exist in-between cells
-        for (let y = 1; y < mazeHeight-2; y += 2) {
-            maze[x][y] = 0; // Carve out this value by setting it to 0
-            
-            let direction; // Choose a direction to carve out another wall and create a pathway
-            if (x === 1 && y === 1) // If this is the top left cell where the player is, set the direction to the right so the player is not facing a wall
-                direction = 0;
-            else
-                direction = Math.floor(Math.random() * 2); // Otherwise, choose a random direction
-            if (direction === 0) // Carve out the right wall
-                maze[x+1][y] = 0;
-            if (direction === 1) // Carve out the bottom wall
-                maze[x][y+1] = 0;
+    let w = (mazeWidth-1)/2;
+    let h = (mazeHeight-1)/2;
+    let cells = [new Vector2(Math.floor(Math.random()*w),Math.floor(Math.random()*h))];
+    while (cells.length>0){
+        let c = cells[cells.length-1];
+        let x=c.x;
+        let y=c.y;
+        maze[2*y+1][2*x+1] = 0; 
+        let ds = [[-1,0],[0,1],[0,-1],[1,0]];
+        let remove = true;
+        for(let i = 4; i>0; i--){
+             let ind = Math.floor(Math.random()*i);
+             let vv = ds[ind];
+             ds.splice(ind,1);
+             let tx = x+vv[0];
+             let ty = y+vv[1];
+             if (tx>=0 && tx<w && ty>=0 && ty<h){
+                 if (maze[2*ty+1][2*tx+1]==1){
+                     cells.push(new Vector2(tx,ty));
+                     maze[2*y+1+vv[1]][2*x+1+vv[0]] = 0; 
+                     i = 0;
+                     remove = false;
+                 }
+             }
+        }
+        if (remove){
+            cells.pop()
         }
     }
-
-    // Empty out every cell in the right-most and bottom-most corrider in order to make sure every area of the maze is accesible. 
-    // The width and height are subtracted by 1 in order to create a boundary around the outside of the maze.
-    for (let y = 1; y < mazeHeight-1; y++)
-        maze[mazeWidth-2][y] = 0; 
-    for (let x = 1; x < mazeWidth-1; x++)
-        maze[x][mazeHeight-2] = 0; 
-
-    /*
-    VISUAL DEMONSTRATION
-    --------------------------
-    1. Solid Square 2D Array of Blocks
-    #########
-    #########
-    #########
-    #########
-    #########
-    #########
-    #########
-    #########
-    #########
-    
-    2. Carve Out Every Other Block (Except The Two Right Columns and Two Bottom Rows)
-    #########
-    # # # ###
-    #########
-    # # # ###
-    #########
-    # # # ###
-    #########
-    #########
-    #########
-
-    3. At The Same Time, Choose A Random Direction (Right Or Down) To Carve Out A Pathway For Each Of These Blocks 
-    #########                         #########
-    # ^ # ^##                         #   #  ##
-    ###^#####                         ### #####
-    # ^ # ###                         #   # ###
-    ###^#^### ----------------------> ### # ###
-    # ^ # ###                         #   # ###
-    ###^#^###                         ### # ###
-    #########                         #########
-    #########                         #########
-    ^ = Chosen cells to carve out
-
-    4. Carve Out The Right-most Column And Bottom-most Row
-    #########
-    #   #   #
-    ### ### #
-    #   # # #
-    ### # # #
-    #   # # #
-    ### # # #
-    #       #
-    #########
-
-    And Bam! We have a maze!
-    */
-
     return maze;
 }
 
@@ -154,7 +102,7 @@ function generateDoors(map, mapWidth, mapHeight) {
         }
 
         if (viable) {
-            doors.push(new Door(new Utils.Vector2(potentialX, potentialY), 0.0, 'closed', 1))
+            doors.push(new Door(new Vector2(potentialX, potentialY), 0.0, 'closed', 1))
             attempts = 0;
         }
 
@@ -183,7 +131,7 @@ function generateDoors(map, mapWidth, mapHeight) {
         }
 
         if (viable) {
-            doors.push(new Door(new Utils.Vector2(potentialX, potentialY), 0.0, 'closed', 0))
+            doors.push(new Door(new Vector2(potentialX, potentialY), 0.0, 'closed', 0))
             attempts = 0;
         }
 
@@ -201,19 +149,19 @@ const map = generateMaze(mapWidth, mapHeight); // 25 x 25 procedural maze
 var doors = generateDoors(map, mapWidth, mapHeight);
 
 // Minimap and crosshair values (calculated based on screen dimensions)
-var blockSize = Utils.castToInt(screenWidth / 110);
-var crosshairSizeShort = Utils.castToInt(blockSize / 6);
-var crosshairSizeLong = Utils.castToInt(crosshairSizeShort * 12);
-var padding = Utils.castToInt(blockSize / 2);
-var playerSize = Utils.castToInt(padding * 4/5);
+var blockSize = int(screenWidth / 110);
+var crosshairSizeShort = int(blockSize / 6);
+var crosshairSizeLong = int(crosshairSizeShort * 12);
+var padding = int(blockSize / 2);
+var playerSize = int(padding * 4/5);
 
 // Player
 const MOVE_SPEED = 3.7;
 // const ROTATION_SPEED = 1.25;
 
-var position = new Utils.Vector2(1.5, 1.5);
-var direction = new Utils.Vector2(1, 0);
-var plane = new Utils.Vector2(0, 0.66);
+var position = new Vector2(1.5, 1.5);
+var direction = new Vector2(1, 0);
+var plane = new Vector2(0, 0.66);
 var walkTime = 0.0;
 var pitch = 0.0;
 
@@ -296,7 +244,7 @@ function keyReleased(event) {
 
 function canMove(newPosition) {
     let canMove = false;
-    if (map[Utils.castToInt(newPosition.x)][Utils.castToInt(newPosition.y)] === 0) {
+    if (map[int(newPosition.x)][int(newPosition.y)] === 0) {
         canMove = true;
 
         for (const door of doors) {
@@ -313,40 +261,40 @@ function movePlayer(moveSpeed) {
     let moved = false;
 
     if (keyRight) {
-        var newPosition = new Utils.Vector2(position.x + (plane.x * moveSpeed), position.y + (plane.y * moveSpeed));
-        if (canMove(new Utils.Vector2(newPosition.x, position.y)))
+        var newPosition = new Vector2(position.x + (plane.x * moveSpeed), position.y + (plane.y * moveSpeed));
+        if (canMove(new Vector2(newPosition.x, position.y)))
             position.x = newPosition.x;
-        if (canMove(new Utils.Vector2(position.x, newPosition.y)))
+        if (canMove(new Vector2(position.x, newPosition.y)))
             position.y = newPosition.y;
 
         moved = true;
     }
 
     if (keyLeft) {
-        var newPosition = new Utils.Vector2(position.x - (plane.x * moveSpeed), position.y - (plane.y * moveSpeed));
-        if (canMove(new Utils.Vector2(newPosition.x, position.y)))
+        var newPosition = new Vector2(position.x - (plane.x * moveSpeed), position.y - (plane.y * moveSpeed));
+        if (canMove(new Vector2(newPosition.x, position.y)))
             position.x = newPosition.x;
-        if (canMove(new Utils.Vector2(position.x, newPosition.y)))
+        if (canMove(new Vector2(position.x, newPosition.y)))
             position.y = newPosition.y;
 
         moved = true;
     }
 
     if (keyUp) {
-        var newPosition = new Utils.Vector2(position.x + (direction.x * moveSpeed), position.y + (direction.y * moveSpeed));
-        if (canMove(new Utils.Vector2(newPosition.x, position.y)))
+        var newPosition = new Vector2(position.x + (direction.x * moveSpeed), position.y + (direction.y * moveSpeed));
+        if (canMove(new Vector2(newPosition.x, position.y)))
             position.x = newPosition.x;
-        if (canMove(new Utils.Vector2(position.x, newPosition.y)))
+        if (canMove(new Vector2(position.x, newPosition.y)))
             position.y = newPosition.y;
 
         moved = true;
     }
 
     if (keyDown) {
-        var newPosition = new Utils.Vector2(position.x - (direction.x * moveSpeed), position.y - (direction.y * moveSpeed));
-        if (canMove(new Utils.Vector2(newPosition.x, position.y)))
+        var newPosition = new Vector2(position.x - (direction.x * moveSpeed), position.y - (direction.y * moveSpeed));
+        if (canMove(new Vector2(newPosition.x, position.y)))
             position.x = newPosition.x;
-        if (canMove(new Utils.Vector2(position.x, newPosition.y)))
+        if (canMove(new Vector2(position.x, newPosition.y)))
             position.y = newPosition.y;
         
         moved = true;
@@ -364,12 +312,12 @@ function rotatePlayer(event) {
     let rotationSpeedX = (differenceX * 60) * timer.getDeltaTime();
     let rotationSpeedY = -(differenceY * 12000) * timer.getDeltaTime();
 
-    var newDirection = new Utils.Vector2();
+    var newDirection = new Vector2();
     newDirection.x = direction.x * Math.cos(rotationSpeedX) - direction.y * Math.sin(rotationSpeedX);
     newDirection.y = direction.x * Math.sin(rotationSpeedX) + direction.y * Math.cos(rotationSpeedX);
     direction = newDirection;
 
-    var newPlane = new Utils.Vector2();
+    var newPlane = new Vector2();
     newPlane.x = plane.x * Math.cos(rotationSpeedX) - plane.y * Math.sin(rotationSpeedX);
     newPlane.y = plane.x * Math.sin(rotationSpeedX) + plane.y * Math.cos(rotationSpeedX);
     plane = newPlane;
@@ -394,6 +342,40 @@ function main() {
         pitch = -clipPitch;
     if (pitch > clipPitch)
         pitch = clipPitch;
+    
+    // Draw floor and ceiling (Horizontally)
+    /*
+    let leftRayDirection = new Vector2(direction.x - plane.x, direction.y - plane.y);
+    let rightRayDirection = new Vector2(direction.x + plane.x, direction.y + plane.y);
+    for (let y = 0; y < screenHeight; y++) {
+        let p = y - screenHeight / 2;
+        let posZ = 0.5 * screenHeight;
+        let rowDistance = posZ / p;
+
+        let floorStep = new Vector2(rowDistance * (rightRayDirection.x - leftRayDirection.x) / screenWidth, 
+                                rowDistance * (rightRayDirection.y - leftRayDirection.y) / screenWidth); 
+        let floor = new Vector2(position.x + rowDistance * leftRayDirection.x, position.y + rowDistance * leftRayDirection.y);
+
+        let dimFactor = 0.8 + (((screenHeight - y - 1) / 5) * 0.01);
+
+        for (let x = 0; x < screenWidth; x++) {
+            let cell = new Vector2(int(floor.x), int(floor.y));
+            let textureCoords = new Vector2(int(textureWidth * (floor.x - cell.x)) & (textureWidth - 1),
+                                            int(textureHeight * (floor.y - cell.y)) & (textureHeight - 1));
+
+            floor.x += floorStep.x;
+            floor.y += floorStep.y;
+            
+            let pixelindex = (textureCoords.y * textureWidth + textureCoords.x) * 4;
+            let red = groundTexture.data[pixelindex] / dimFactor;
+            let green = groundTexture.data[pixelindex+1] / dimFactor;
+            let blue = groundTexture.data[pixelindex+2] / dimFactor;
+
+            drawPixel(screen, x, y, red, green, blue);
+            drawPixel(screen, x, screenHeight - y - 1, 0 / dimFactor, 191 / dimFactor, 255 / dimFactor);
+        }
+    }
+    */
 
     // Update doors
     for (const door of doors) {
@@ -416,18 +398,18 @@ function main() {
     let raysOnMap = [];
     for (let x = 0; x < screenWidth; x++) {
         let cameraX = 2 * x / screenWidth - 1;
-        let rayDirection = new Utils.Vector2(direction.x + plane.x * cameraX, direction.y + plane.y * cameraX);
+        let rayDirection = new Vector2(direction.x + plane.x * cameraX, direction.y + plane.y * cameraX);
         
-        let mapCoords = new Utils.Vector2(Utils.castToInt(position.x), Utils.castToInt(position.y));
-        let sideDistance = new Utils.Vector2();
-        let deltaDistance = new Utils.Vector2(
+        let mapCoords = new Vector2(int(position.x), int(position.y));
+        let sideDistance = new Vector2();
+        let deltaDistance = new Vector2(
             // (rayDirection.x === 0) ? 1e+30 : Math.abs(1 / rayDirection.x),
             // (rayDirection.y === 0) ? 1e+30 : Math.abs(1 / rayDirection.y)
             Math.abs(1 / rayDirection.x),
             Math.abs(1 / rayDirection.y)
         );
 
-        var step = new Utils.Vector2();
+        var step = new Vector2();
         let hit = false;
         let hitDoor = false;
         let doorOffset;
@@ -473,12 +455,12 @@ function main() {
             // Collision with door
             for (const door of doors) {
                 if (door.side === 0) { // Horizontal
-                    if (position.x < door.position.x+1.15 && position.x > door.position.x-0.15 && Utils.castToInt(position.y) === door.position.y) // X value close to door, same row
+                    if (position.x < door.position.x+1.15 && position.x > door.position.x-0.15 && int(position.y) === door.position.y) // X value close to door, same row
                         door.trigger = true;
                 }
 
                 else { // Vertical
-                    if (position.y < door.position.y+1.15 && position.y > door.position.y-0.15 && Utils.castToInt(position.x) === door.position.x)  // Y value close to door, same column
+                    if (position.y < door.position.y+1.15 && position.y > door.position.y-0.15 && int(position.x) === door.position.x)  // Y value close to door, same column
                         door.trigger = true;
                 }
 
@@ -545,11 +527,11 @@ function main() {
             perpendicularWallDistance = (sideDistance.y - deltaDistance.y);
         }
 
-        let rayOnMap = new Utils.Vector2(((position.x + (rayDirection.x * perpendicularWallDistance)) * blockSize) + (screenWidth - mapWidth * blockSize - padding),
+        let rayOnMap = new Vector2(((position.x + (rayDirection.x * perpendicularWallDistance)) * blockSize) + (screenWidth - mapWidth * blockSize - padding),
                                     (position.y + (rayDirection.y * perpendicularWallDistance)) * blockSize + padding);        
         raysOnMap.push(rayOnMap);
         
-        let lineHeight = Utils.castToInt(screenHeight / perpendicularWallDistance);
+        let lineHeight = int(screenHeight / perpendicularWallDistance);
         let drawStart = screenHeight / 2 - lineHeight / 2 + pitch;
         if (drawStart < 0)
             drawStart = 0;
@@ -564,11 +546,11 @@ function main() {
             wallX = position.x + perpendicularWallDistance * rayDirection.x;
         wallX -= Math.floor(wallX);
 
-        let textureCoords = new Utils.Vector2();
+        let textureCoords = new Vector2();
         let offsetedWallX = wallX;
         if (hitDoor && doorState !== 'closed')
             offsetedWallX += doorOffset;
-        textureCoords.x = Utils.castToInt(offsetedWallX * textureWidth);
+        textureCoords.x = int(offsetedWallX * textureWidth);
         if (side === 0 && rayDirection.x > 0)
             textureCoords.x = textureWidth - textureCoords.x - 1;
         if (side === 1 && rayDirection.y < 0)
@@ -576,9 +558,30 @@ function main() {
 
         var step = 1.0 * textureHeight / lineHeight;
         let texturePosition = (drawStart - pitch - screenHeight / 2 + lineHeight / 2) * step;
-        for (let y = Utils.castToInt(drawStart)+1; y < Utils.castToInt(drawEnd)+1; y++) {
-            textureCoords.y = Utils.castToInt(texturePosition) & (textureHeight - 1);
+        for (let y = int(drawStart)+1; y < int(drawEnd)+1; y++) {
+            textureCoords.y = int(texturePosition) & (textureHeight - 1);
             texturePosition += step;
+
+            /*
+            // Calculate the lighting of the texture based on the height of the line being rendered (which is based off of distance)
+            let nearness;
+            if (lineHeight > 100) // If the line is bigger than a 100 pixels, make it full brightness
+                nearness = 100;
+            else
+                nearness = lineHeight;
+
+            // Add 0.01 to the "dimness factor" for every pixel in the difference between the line height and a 100 pixels
+            let dimFactor = 0.8 + (0.01 * (100 - nearness)); // Make the max "dimness factor" 0.8 so it is slightly brighter than the actual texture
+            */
+            /*
+            let dimFactor = 0.8;
+            let temp = dimFactor;
+            for (let i = 100; i >= 0; i -= 1) {
+                temp += 0.01;
+                if (lineHeight < i)
+                    dimFactor = temp;
+            }
+            */
             
             let dimFactor = 0.8 + (0.2 * perpendicularWallDistance);
             let fogPercentage = 0.08 * perpendicularWallDistance;
@@ -598,11 +601,11 @@ function main() {
             let blue = selectedTexture.data[pixelindex+2] / dimFactor;
             blue = blue * (1 - fogPercentage) + fogPercentage * 0.1;
 
-            renderer.drawPixel(x, y, red, green, blue);
+            drawPixel(screen, x, y, red, green, blue);
         }
 
         // Draw Wall and Ceiling (Vertically)
-        let floorCeilingWallPos = new Utils.Vector2();
+        let floorCeilingWallPos = new Vector2();
         if (side == 0 && rayDirection.x > 0) {
             floorCeilingWallPos.x = mapCoords.x;
             floorCeilingWallPos.y = mapCoords.y + wallX;
@@ -625,16 +628,16 @@ function main() {
         if (drawEnd < 0) 
             drawEnd = screenHeight;
 
-        for (let y = 0; y < Utils.castToInt(drawStart)+1; y++) {
+        for (let y = 0; y < int(drawStart)+1; y++) {
             currentDistance = screenHeight / (screenHeight - 2.0 * (y - pitch));
 
             let weight = currentDistance / perpendicularWallDistance;
             
-            let currentCeiling = new Utils.Vector2(weight * floorCeilingWallPos.x + (1.0 - weight) * position.x,
+            let currentCeiling = new Vector2(weight * floorCeilingWallPos.x + (1.0 - weight) * position.x,
                                           weight * floorCeilingWallPos.y + (1.0 - weight) * position.y)
     
-            let ceilingTex = new Utils.Vector2(Utils.castToInt(currentCeiling.x * textureWidth) % textureWidth,
-                                       Utils.castToInt(currentCeiling.y * textureHeight) % textureHeight);
+            let ceilingTex = new Vector2(int(currentCeiling.x * textureWidth) % textureWidth,
+                                       int(currentCeiling.y * textureHeight) % textureHeight);
 
             let dimFactor = 0.9 + (0.2 * (currentDistance));
             let fogPercentage = 0.08 * currentDistance;
@@ -647,19 +650,19 @@ function main() {
             let blue = ceilingTexture.data[pixelindex+2] / dimFactor;
             blue = blue * (1 - fogPercentage) + fogPercentage * 0.1;
 
-            renderer.drawPixel(x, y, red, green, blue);
+            drawPixel(screen, x, y, red, green, blue);
         }
 
-        for (let y = Utils.castToInt(drawEnd)+1; y < screenHeight; y++) {
+        for (let y = int(drawEnd)+1; y < screenHeight; y++) {
             currentDistance = screenHeight / (2.0 * (y - pitch) - screenHeight);
     
             let weight = currentDistance / perpendicularWallDistance;
             
-            let currentFloor = new Utils.Vector2(weight * floorCeilingWallPos.x + (1.0 - weight) * position.x,
+            let currentFloor = new Vector2(weight * floorCeilingWallPos.x + (1.0 - weight) * position.x,
                                           weight * floorCeilingWallPos.y + (1.0 - weight) * position.y)
     
-            let floorTex = new Utils.Vector2(Utils.castToInt(currentFloor.x * textureWidth) % textureWidth,
-                                       Utils.castToInt(currentFloor.y * textureHeight) % textureHeight);
+            let floorTex = new Vector2(int(currentFloor.x * textureWidth) % textureWidth,
+                                       int(currentFloor.y * textureHeight) % textureHeight);
 
             let dimFactor = 0.9 + (0.2 * (currentDistance));
             let fogPercentage = 0.08 * currentDistance;
@@ -672,57 +675,58 @@ function main() {
             let blue = groundTexture.data[pixelindex+2] / dimFactor;
             blue = blue * (1 - fogPercentage) + fogPercentage * 0.1;
 
-            renderer.drawPixel(x, y, red, green, blue);
+            drawPixel(screen, x, y, red, green, blue);
         }
     }
 
     // Render minimap
-    renderer.drawRectangle((screenWidth - mapWidth * blockSize - padding), padding, mapWidth * blockSize, mapHeight * blockSize, 66, 66, 66);
-    let adjustedPosition = new Utils.Vector2((position.x * blockSize) + (screenWidth - mapWidth * blockSize - padding),
+    drawRectangle(screen, (screenWidth - mapWidth * blockSize - padding), padding, mapWidth * blockSize, mapHeight * blockSize, 66, 66, 66);
+    let adjustedPosition = new Vector2((position.x * blockSize) + (screenWidth - mapWidth * blockSize - padding),
                                        position.y * blockSize + padding); 
-    renderer.drawFilledCircle(adjustedPosition.x, adjustedPosition.y, playerSize, 255, 92, 92);
+    drawFilledCircle(screen, adjustedPosition.x, adjustedPosition.y, playerSize, 255, 92, 92);
     raysOnMap.forEach(rayOnMap =>
-        renderer.drawLine(adjustedPosition, rayOnMap, 255, 92, 92)
+        drawLine(screen, adjustedPosition, rayOnMap, 255, 92, 92)
     );
-    renderer.drawCircle(adjustedPosition.x, adjustedPosition.y, playerSize, 255, 255, 255);
     
     for (const door of doors) {
         if (door.side === 0) {
             let doorBlockLength = (blockSize - 1) * (1.0 - door.offset);
-            let doorBlockWidth = Utils.castToInt(blockSize / 2.5);
+            let doorBlockWidth = int(blockSize / 2.5);
 
             let adjustedDoorX = ((door.position.x + 0.5) * blockSize + (screenWidth - mapWidth * blockSize - padding)) - doorBlockWidth / 1.5;
             let adjustedDoorY = (door.position.y * blockSize + padding);
-            renderer.drawRectangle(adjustedDoorX, adjustedDoorY, doorBlockWidth, doorBlockLength, 200, 200, 200);
+            drawRectangle(screen, adjustedDoorX, adjustedDoorY, doorBlockWidth, doorBlockLength, 200, 200, 200);
         }
 
         if (door.side === 1) {
-            let doorBlockLength = Utils.castToInt(blockSize / 2.5);
+            let doorBlockLength = int(blockSize / 2.5);
             let doorBlockWidth = (blockSize - 1) * (1.0 - door.offset);
 
             let adjustedDoorX = (door.position.x * blockSize + (screenWidth - mapWidth * blockSize - padding));
             let adjustedDoorY = ((door.position.y + 0.5) * blockSize + padding) - doorBlockLength / 1.5;
-            renderer.drawRectangle(adjustedDoorX, adjustedDoorY, doorBlockWidth, doorBlockLength, 200, 200, 200);
+            drawRectangle(screen, adjustedDoorX, adjustedDoorY, doorBlockWidth, doorBlockLength, 200, 200, 200);
         }
     }
 
     for (let x = 0; x < mapWidth; x++) {
         for (let y = 0; y < mapHeight; y++) {
             if (map[x][y] > 0)
-                renderer.drawRectangle((x * blockSize) + (screenWidth - mapWidth * blockSize - padding), y * blockSize + padding, blockSize - 1, blockSize - 1, 255, 255, 255);
+                drawRectangle(screen, (x * blockSize) + (screenWidth - mapWidth * blockSize - padding), y * blockSize + padding, blockSize - 1, blockSize - 1, 255, 255, 255);
         }
     }
 
     // Render crosshair
-    renderer.drawRectangle(screenWidth / 2, screenHeight / 2 - 9, 2, 20, 255, 255, 255);
-    renderer.drawRectangle(screenWidth / 2 - 10 + 1, screenHeight / 2, 20, 2, 255, 255, 255);
+    drawRectangle(screen, screenWidth / 2, screenHeight / 2 - 9, 2, 20, 255, 255, 255);
+    drawRectangle(screen, screenWidth / 2 - 10 + 1, screenHeight / 2, 20, 2, 255, 255, 255);
     
-    renderer.renderBuffer(ctx);
+    ctx.putImageData(screen, 0, 0);
 
     instructionPrompt.update(timer.getDeltaTime());
     instructionPrompt.render(ctx);
 
-    renderer.drawWhiteText("18px Helvetica", `${(1 / timer.getDeltaTime()).toFixed(3)} FPS`, 5, 25, ctx);
+    ctx.font = "18px Helvetica";
+    ctx.fillStyle = "white";
+    ctx.fillText(`${(1 / timer.getDeltaTime()).toFixed(3)} FPS`, 5, 25);
 
     requestAnimationFrame(main);
 }
@@ -737,7 +741,7 @@ var groundTexture;
 var ceilingTexture;
 var doorTexture;
 
-Utils.loadImages(textureUrls).then(textures => {
+loadImages(textureUrls).then(textures => {
     ctx.drawImage(textures[0], 0, 0);
     wallTexture = ctx.getImageData(0, 0, textureWidth, textureHeight);
 
