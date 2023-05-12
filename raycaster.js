@@ -1,11 +1,12 @@
-import { loadImage, loadImages, drawPixel, drawRectangle, drawVerticalLine, drawLine, eightWayPlot, drawCircle, drawFilledCircle, int, Vector2 } from "./lib.js";
 import { RenderBuffer } from "./src/RenderBuffer.js";
 import { Prompt } from "./src/Prompt.js";
 import { Timer } from "./src/Timer.js";
 
+import * as Utils from "./src/Utils.js";
+
 // Screen dimensions (scaled to 70% of window)
-const screenWidth = int(window.innerWidth * 0.7);
-const screenHeight = int(window.innerHeight * 3/4);
+const screenWidth = Utils.castToInt(window.innerWidth * 0.7);
+const screenHeight = Utils.castToInt(window.innerHeight * 3/4);
 
 // Dealing with canvas (setting dimensions, creating context)
 canvas.width = screenWidth;
@@ -153,7 +154,7 @@ function generateDoors(map, mapWidth, mapHeight) {
         }
 
         if (viable) {
-            doors.push(new Door(new Vector2(potentialX, potentialY), 0.0, 'closed', 1))
+            doors.push(new Door(new Utils.Vector2(potentialX, potentialY), 0.0, 'closed', 1))
             attempts = 0;
         }
 
@@ -182,7 +183,7 @@ function generateDoors(map, mapWidth, mapHeight) {
         }
 
         if (viable) {
-            doors.push(new Door(new Vector2(potentialX, potentialY), 0.0, 'closed', 0))
+            doors.push(new Door(new Utils.Vector2(potentialX, potentialY), 0.0, 'closed', 0))
             attempts = 0;
         }
 
@@ -200,19 +201,19 @@ const map = generateMaze(mapWidth, mapHeight); // 25 x 25 procedural maze
 var doors = generateDoors(map, mapWidth, mapHeight);
 
 // Minimap and crosshair values (calculated based on screen dimensions)
-var blockSize = int(screenWidth / 110);
-var crosshairSizeShort = int(blockSize / 6);
-var crosshairSizeLong = int(crosshairSizeShort * 12);
-var padding = int(blockSize / 2);
-var playerSize = int(padding * 4/5);
+var blockSize = Utils.castToInt(screenWidth / 110);
+var crosshairSizeShort = Utils.castToInt(blockSize / 6);
+var crosshairSizeLong = Utils.castToInt(crosshairSizeShort * 12);
+var padding = Utils.castToInt(blockSize / 2);
+var playerSize = Utils.castToInt(padding * 4/5);
 
 // Player
 const MOVE_SPEED = 3.7;
 // const ROTATION_SPEED = 1.25;
 
-var position = new Vector2(1.5, 1.5);
-var direction = new Vector2(1, 0);
-var plane = new Vector2(0, 0.66);
+var position = new Utils.Vector2(1.5, 1.5);
+var direction = new Utils.Vector2(1, 0);
+var plane = new Utils.Vector2(0, 0.66);
 var walkTime = 0.0;
 var pitch = 0.0;
 
@@ -295,7 +296,7 @@ function keyReleased(event) {
 
 function canMove(newPosition) {
     let canMove = false;
-    if (map[int(newPosition.x)][int(newPosition.y)] === 0) {
+    if (map[Utils.castToInt(newPosition.x)][Utils.castToInt(newPosition.y)] === 0) {
         canMove = true;
 
         for (const door of doors) {
@@ -312,40 +313,40 @@ function movePlayer(moveSpeed) {
     let moved = false;
 
     if (keyRight) {
-        var newPosition = new Vector2(position.x + (plane.x * moveSpeed), position.y + (plane.y * moveSpeed));
-        if (canMove(new Vector2(newPosition.x, position.y)))
+        var newPosition = new Utils.Vector2(position.x + (plane.x * moveSpeed), position.y + (plane.y * moveSpeed));
+        if (canMove(new Utils.Vector2(newPosition.x, position.y)))
             position.x = newPosition.x;
-        if (canMove(new Vector2(position.x, newPosition.y)))
+        if (canMove(new Utils.Vector2(position.x, newPosition.y)))
             position.y = newPosition.y;
 
         moved = true;
     }
 
     if (keyLeft) {
-        var newPosition = new Vector2(position.x - (plane.x * moveSpeed), position.y - (plane.y * moveSpeed));
-        if (canMove(new Vector2(newPosition.x, position.y)))
+        var newPosition = new Utils.Vector2(position.x - (plane.x * moveSpeed), position.y - (plane.y * moveSpeed));
+        if (canMove(new Utils.Vector2(newPosition.x, position.y)))
             position.x = newPosition.x;
-        if (canMove(new Vector2(position.x, newPosition.y)))
+        if (canMove(new Utils.Vector2(position.x, newPosition.y)))
             position.y = newPosition.y;
 
         moved = true;
     }
 
     if (keyUp) {
-        var newPosition = new Vector2(position.x + (direction.x * moveSpeed), position.y + (direction.y * moveSpeed));
-        if (canMove(new Vector2(newPosition.x, position.y)))
+        var newPosition = new Utils.Vector2(position.x + (direction.x * moveSpeed), position.y + (direction.y * moveSpeed));
+        if (canMove(new Utils.Vector2(newPosition.x, position.y)))
             position.x = newPosition.x;
-        if (canMove(new Vector2(position.x, newPosition.y)))
+        if (canMove(new Utils.Vector2(position.x, newPosition.y)))
             position.y = newPosition.y;
 
         moved = true;
     }
 
     if (keyDown) {
-        var newPosition = new Vector2(position.x - (direction.x * moveSpeed), position.y - (direction.y * moveSpeed));
-        if (canMove(new Vector2(newPosition.x, position.y)))
+        var newPosition = new Utils.Vector2(position.x - (direction.x * moveSpeed), position.y - (direction.y * moveSpeed));
+        if (canMove(new Utils.Vector2(newPosition.x, position.y)))
             position.x = newPosition.x;
-        if (canMove(new Vector2(position.x, newPosition.y)))
+        if (canMove(new Utils.Vector2(position.x, newPosition.y)))
             position.y = newPosition.y;
         
         moved = true;
@@ -363,12 +364,12 @@ function rotatePlayer(event) {
     let rotationSpeedX = (differenceX * 60) * timer.getDeltaTime();
     let rotationSpeedY = -(differenceY * 12000) * timer.getDeltaTime();
 
-    var newDirection = new Vector2();
+    var newDirection = new Utils.Vector2();
     newDirection.x = direction.x * Math.cos(rotationSpeedX) - direction.y * Math.sin(rotationSpeedX);
     newDirection.y = direction.x * Math.sin(rotationSpeedX) + direction.y * Math.cos(rotationSpeedX);
     direction = newDirection;
 
-    var newPlane = new Vector2();
+    var newPlane = new Utils.Vector2();
     newPlane.x = plane.x * Math.cos(rotationSpeedX) - plane.y * Math.sin(rotationSpeedX);
     newPlane.y = plane.x * Math.sin(rotationSpeedX) + plane.y * Math.cos(rotationSpeedX);
     plane = newPlane;
@@ -415,18 +416,18 @@ function main() {
     let raysOnMap = [];
     for (let x = 0; x < screenWidth; x++) {
         let cameraX = 2 * x / screenWidth - 1;
-        let rayDirection = new Vector2(direction.x + plane.x * cameraX, direction.y + plane.y * cameraX);
+        let rayDirection = new Utils.Vector2(direction.x + plane.x * cameraX, direction.y + plane.y * cameraX);
         
-        let mapCoords = new Vector2(int(position.x), int(position.y));
-        let sideDistance = new Vector2();
-        let deltaDistance = new Vector2(
+        let mapCoords = new Utils.Vector2(Utils.castToInt(position.x), Utils.castToInt(position.y));
+        let sideDistance = new Utils.Vector2();
+        let deltaDistance = new Utils.Vector2(
             // (rayDirection.x === 0) ? 1e+30 : Math.abs(1 / rayDirection.x),
             // (rayDirection.y === 0) ? 1e+30 : Math.abs(1 / rayDirection.y)
             Math.abs(1 / rayDirection.x),
             Math.abs(1 / rayDirection.y)
         );
 
-        var step = new Vector2();
+        var step = new Utils.Vector2();
         let hit = false;
         let hitDoor = false;
         let doorOffset;
@@ -472,12 +473,12 @@ function main() {
             // Collision with door
             for (const door of doors) {
                 if (door.side === 0) { // Horizontal
-                    if (position.x < door.position.x+1.15 && position.x > door.position.x-0.15 && int(position.y) === door.position.y) // X value close to door, same row
+                    if (position.x < door.position.x+1.15 && position.x > door.position.x-0.15 && Utils.castToInt(position.y) === door.position.y) // X value close to door, same row
                         door.trigger = true;
                 }
 
                 else { // Vertical
-                    if (position.y < door.position.y+1.15 && position.y > door.position.y-0.15 && int(position.x) === door.position.x)  // Y value close to door, same column
+                    if (position.y < door.position.y+1.15 && position.y > door.position.y-0.15 && Utils.castToInt(position.x) === door.position.x)  // Y value close to door, same column
                         door.trigger = true;
                 }
 
@@ -544,11 +545,11 @@ function main() {
             perpendicularWallDistance = (sideDistance.y - deltaDistance.y);
         }
 
-        let rayOnMap = new Vector2(((position.x + (rayDirection.x * perpendicularWallDistance)) * blockSize) + (screenWidth - mapWidth * blockSize - padding),
+        let rayOnMap = new Utils.Vector2(((position.x + (rayDirection.x * perpendicularWallDistance)) * blockSize) + (screenWidth - mapWidth * blockSize - padding),
                                     (position.y + (rayDirection.y * perpendicularWallDistance)) * blockSize + padding);        
         raysOnMap.push(rayOnMap);
         
-        let lineHeight = int(screenHeight / perpendicularWallDistance);
+        let lineHeight = Utils.castToInt(screenHeight / perpendicularWallDistance);
         let drawStart = screenHeight / 2 - lineHeight / 2 + pitch;
         if (drawStart < 0)
             drawStart = 0;
@@ -563,11 +564,11 @@ function main() {
             wallX = position.x + perpendicularWallDistance * rayDirection.x;
         wallX -= Math.floor(wallX);
 
-        let textureCoords = new Vector2();
+        let textureCoords = new Utils.Vector2();
         let offsetedWallX = wallX;
         if (hitDoor && doorState !== 'closed')
             offsetedWallX += doorOffset;
-        textureCoords.x = int(offsetedWallX * textureWidth);
+        textureCoords.x = Utils.castToInt(offsetedWallX * textureWidth);
         if (side === 0 && rayDirection.x > 0)
             textureCoords.x = textureWidth - textureCoords.x - 1;
         if (side === 1 && rayDirection.y < 0)
@@ -575,8 +576,8 @@ function main() {
 
         var step = 1.0 * textureHeight / lineHeight;
         let texturePosition = (drawStart - pitch - screenHeight / 2 + lineHeight / 2) * step;
-        for (let y = int(drawStart)+1; y < int(drawEnd)+1; y++) {
-            textureCoords.y = int(texturePosition) & (textureHeight - 1);
+        for (let y = Utils.castToInt(drawStart)+1; y < Utils.castToInt(drawEnd)+1; y++) {
+            textureCoords.y = Utils.castToInt(texturePosition) & (textureHeight - 1);
             texturePosition += step;
             
             let dimFactor = 0.8 + (0.2 * perpendicularWallDistance);
@@ -601,7 +602,7 @@ function main() {
         }
 
         // Draw Wall and Ceiling (Vertically)
-        let floorCeilingWallPos = new Vector2();
+        let floorCeilingWallPos = new Utils.Vector2();
         if (side == 0 && rayDirection.x > 0) {
             floorCeilingWallPos.x = mapCoords.x;
             floorCeilingWallPos.y = mapCoords.y + wallX;
@@ -624,16 +625,16 @@ function main() {
         if (drawEnd < 0) 
             drawEnd = screenHeight;
 
-        for (let y = 0; y < int(drawStart)+1; y++) {
+        for (let y = 0; y < Utils.castToInt(drawStart)+1; y++) {
             currentDistance = screenHeight / (screenHeight - 2.0 * (y - pitch));
 
             let weight = currentDistance / perpendicularWallDistance;
             
-            let currentCeiling = new Vector2(weight * floorCeilingWallPos.x + (1.0 - weight) * position.x,
+            let currentCeiling = new Utils.Vector2(weight * floorCeilingWallPos.x + (1.0 - weight) * position.x,
                                           weight * floorCeilingWallPos.y + (1.0 - weight) * position.y)
     
-            let ceilingTex = new Vector2(int(currentCeiling.x * textureWidth) % textureWidth,
-                                       int(currentCeiling.y * textureHeight) % textureHeight);
+            let ceilingTex = new Utils.Vector2(Utils.castToInt(currentCeiling.x * textureWidth) % textureWidth,
+                                       Utils.castToInt(currentCeiling.y * textureHeight) % textureHeight);
 
             let dimFactor = 0.9 + (0.2 * (currentDistance));
             let fogPercentage = 0.08 * currentDistance;
@@ -649,16 +650,16 @@ function main() {
             renderer.drawPixel(x, y, red, green, blue);
         }
 
-        for (let y = int(drawEnd)+1; y < screenHeight; y++) {
+        for (let y = Utils.castToInt(drawEnd)+1; y < screenHeight; y++) {
             currentDistance = screenHeight / (2.0 * (y - pitch) - screenHeight);
     
             let weight = currentDistance / perpendicularWallDistance;
             
-            let currentFloor = new Vector2(weight * floorCeilingWallPos.x + (1.0 - weight) * position.x,
+            let currentFloor = new Utils.Vector2(weight * floorCeilingWallPos.x + (1.0 - weight) * position.x,
                                           weight * floorCeilingWallPos.y + (1.0 - weight) * position.y)
     
-            let floorTex = new Vector2(int(currentFloor.x * textureWidth) % textureWidth,
-                                       int(currentFloor.y * textureHeight) % textureHeight);
+            let floorTex = new Utils.Vector2(Utils.castToInt(currentFloor.x * textureWidth) % textureWidth,
+                                       Utils.castToInt(currentFloor.y * textureHeight) % textureHeight);
 
             let dimFactor = 0.9 + (0.2 * (currentDistance));
             let fogPercentage = 0.08 * currentDistance;
@@ -677,7 +678,7 @@ function main() {
 
     // Render minimap
     renderer.drawRectangle((screenWidth - mapWidth * blockSize - padding), padding, mapWidth * blockSize, mapHeight * blockSize, 66, 66, 66);
-    let adjustedPosition = new Vector2((position.x * blockSize) + (screenWidth - mapWidth * blockSize - padding),
+    let adjustedPosition = new Utils.Vector2((position.x * blockSize) + (screenWidth - mapWidth * blockSize - padding),
                                        position.y * blockSize + padding); 
     renderer.drawFilledCircle(adjustedPosition.x, adjustedPosition.y, playerSize, 255, 92, 92);
     raysOnMap.forEach(rayOnMap =>
@@ -688,7 +689,7 @@ function main() {
     for (const door of doors) {
         if (door.side === 0) {
             let doorBlockLength = (blockSize - 1) * (1.0 - door.offset);
-            let doorBlockWidth = int(blockSize / 2.5);
+            let doorBlockWidth = Utils.castToInt(blockSize / 2.5);
 
             let adjustedDoorX = ((door.position.x + 0.5) * blockSize + (screenWidth - mapWidth * blockSize - padding)) - doorBlockWidth / 1.5;
             let adjustedDoorY = (door.position.y * blockSize + padding);
@@ -696,7 +697,7 @@ function main() {
         }
 
         if (door.side === 1) {
-            let doorBlockLength = int(blockSize / 2.5);
+            let doorBlockLength = Utils.castToInt(blockSize / 2.5);
             let doorBlockWidth = (blockSize - 1) * (1.0 - door.offset);
 
             let adjustedDoorX = (door.position.x * blockSize + (screenWidth - mapWidth * blockSize - padding));
@@ -736,7 +737,7 @@ var groundTexture;
 var ceilingTexture;
 var doorTexture;
 
-loadImages(textureUrls).then(textures => {
+Utils.loadImages(textureUrls).then(textures => {
     ctx.drawImage(textures[0], 0, 0);
     wallTexture = ctx.getImageData(0, 0, textureWidth, textureHeight);
 
