@@ -1,8 +1,3 @@
-// Image utils
-
-// TODO:
-// - Fully Comment
-
 /**
  * Loads an image.
  *
@@ -42,15 +37,31 @@ export async function loadImages(imageUrlArray) {
     return imageArray;
 }
 
-// Math utils
+/**
+ * Casts a float/decimal number to a string using binary magic.
+ *
+ * @param {number} value The float to convert to an integer.
+ */
 export function castToInt(value) { // Originally parseInt(), but it was very slow and affected performance considerably
     return ~~value; 
 }
 
+/**
+ * Casts a integer number to a string.
+ *
+ * @param {number} value The integer to convert to a float.
+ */
 export function castToFloat(value) { 
     return parseFloat(value); 
 }
 
+/**
+ * Converts a RGB color to a Hex color string.
+ *
+ * @param {number} red The red value of the RGB color.
+ * @param {number} green The green value of the RGB color.
+ * @param {number} blue The blue value of the RGB color.
+ */
 export function RGBToHex(r, g, b) {
     return "#" + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
 }

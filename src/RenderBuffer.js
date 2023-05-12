@@ -89,11 +89,21 @@ export class RenderBuffer {
         }
     }
 
+    /**
+     * Draws any line to the buffer.
+     *
+     * @param {Vector2} p1 The first point of the line.
+     * @param {Vector2} p2 The second point of the line.
+     * @param {number} red The red value of the RGB color of the line.
+     * @param {number} green The green value of the RGB color of the line.
+     * @param {number} blue The blue value of the RGB color of the line.
+     */
     drawLine(p1, p2, red, green, blue) {
         // Create copies to ensure integers
         let point1 = new Vector2(castToInt(p1.x), castToInt(p1.y));
         let point2 = new Vector2(castToInt(p2.x), castToInt(p2.y));
 
+        // Draw a line form the x and y position of the first point to the x and y position of the second point.
         let dx = point2.x - point1.x;
         let dy = point2.y - point1.y;
         if (Math.abs(dx) > Math.abs(dy)) {
