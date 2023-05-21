@@ -66,6 +66,13 @@ export function RGBToHex(r, g, b) {
     return "#" + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
 }
 
+/**
+ * Converts a RGB color to a 32 bit integer.
+ *
+ * @param {number} red The red value of the RGB color.
+ * @param {number} green The green value of the RGB color.
+ * @param {number} blue The blue value of the RGB color.
+ */
 export function RGBToInt(red, green, blue) {
     var r = red & 0xFF;
     var g = green & 0xFF;
@@ -74,14 +81,27 @@ export function RGBToInt(red, green, blue) {
     return (r << 24) + (g << 16) + (b << 8) + 255;
 }
 
-export function intToRGB(i) {
+/**
+ * Converts a 32 bit integer to a RGB Color.
+ *
+ * @param {number} integer The 32 bit integer representing a color.
+ */
+export function intToRGB(integer) {
     return {
-        red: i >> 24 & 0xFF,
-        green: i >> 16 & 0xFF,
-        blue: i >> 8 & 0xFF,
+        red: integer >> 24 & 0xFF,
+        green: integer >> 16 & 0xFF,
+        blue: integer >> 8 & 0xFF,
     }
 }
 
+/**
+ * Map a value in a certain range to another range.
+ *
+ * @param {number} value The value.
+ * @param {number} leftMin The minimum of the original range.
+ * @param {number} leftMax The maximum of the original range.
+ * @param {number} leftMax The maximum of the original range.
+ */
 export function mapValue(value, leftMin, leftMax, rightMin, rightMax)
 {
     var leftSpan = leftMax - leftMin;
@@ -90,6 +110,12 @@ export function mapValue(value, leftMin, leftMax, rightMin, rightMax)
     return rightMin + (valueScaled * rightSpan);
 }
 
+/**
+ * Function to swap the x and y positions of two points.
+ * 
+ * @param {Vector2} point1 The first point.
+ * @param {Vector2} point2 The second point.
+ */
 export function swapPoints(point1, point2) {
     let temp = point1.x;
     point1.x = point2.x;
@@ -112,6 +138,12 @@ export function interpolate(i0, d0, i1, d1) {
     return values;
 }
 
+/**
+ * Vector2 representing A two value vector object/structure.
+ * 
+ * @param {number} x The x value of the vector.
+ * @param {number} y TThe y value of the vector.
+ */
 export function Vector2(x, y) {
     this.x = x;
     this.y = y;

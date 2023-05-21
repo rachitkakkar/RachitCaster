@@ -15,6 +15,8 @@ MAJOR WORK IN PROGRESS, THE CODE IS BEING REFACTORED TO AN OBJECT BASED MODEL WI
 - Features textures, a mini-map, procedural/maze generation, doors, fully implemented first person controller (including strafe and up/down mouselook), and more!
 - Uses modern Javascript features such as classes, modules, JSDoc, PointerLock API, etc.
 
+*This project started as a quest to improve a much older raycaster I made a long time ago, and the original code plus its README can be found in the `Version 1` directory.*
+
 # Credits
 Much of the work here is inspired by Lode Vandevenne's excellent tutorials on raycasting.
 

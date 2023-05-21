@@ -1,12 +1,18 @@
 import { RenderBuffer } from "./src/RenderBuffer.js";
+import { InputHandler } from "./src/InputHandler.js";
 import { Prompt } from "./src/Prompt.js";
 import { Timer } from "./src/Timer.js";
 
 import * as Utils from "./src/Utils.js";
 
-// Screen dimensions (scaled to 70% of window)
+// Screen dimensions (scaled to 70% of window with 16/10 aspect ratio)
+const aspectRatio = 16.0 / 10.0;
 const screenWidth = Utils.castToInt(window.innerWidth * 0.7);
-const screenHeight = Utils.castToInt(window.innerHeight * 3/4);
+const screenHeight = Utils.castToInt(screenWidth / aspectRatio);
+
+// Handle options
+const texturesBox = document.getElementById('textures');
+const fogBox = document.getElementById('fog');
 
 // Dealing with canvas (setting dimensions, creating context)
 canvas.width = screenWidth;
@@ -203,7 +209,6 @@ var doors = generateDoors(map, mapWidth, mapHeight);
 // Minimap and crosshair values (calculated based on screen dimensions)
 var blockSize = Utils.castToInt(screenWidth / 110);
 var crosshairSizeShort = Utils.castToInt(blockSize / 6);
-var crosshairSizeLong = Utils.castToInt(crosshairSizeShort * 12);
 var padding = Utils.castToInt(blockSize / 2);
 var playerSize = Utils.castToInt(padding * 4/5);
 
@@ -218,13 +223,9 @@ var walkTime = 0.0;
 var pitch = 0.0;
 
 // Input and key handling
-var keyRight = false;
-var keyLeft = false;
-var keyUp = false;
-var keyDown = false;
+var inputHandler = new InputHandler();
+inputHandler.bind();
 
-document.addEventListener("keydown", keyPush);
-document.addEventListener("keyup", keyReleased);
 canvas.addEventListener("click", async () => {
     if(!document.pointerLockElement) {
       await canvas.requestPointerLock({
@@ -246,54 +247,6 @@ function lockChangeAlert() {
     }
 }  
 
-function keyPush(event) {
-    if (event.repeat)
-        return
-    switch(event.key) {
-        case "ArrowRight":
-        case "d":
-            keyRight = true;
-            break;
-        case "ArrowLeft":
-        case "a":
-            keyLeft = true;
-            break;
-
-        case "ArrowUp":
-        case "w":
-            keyUp = true;
-            break;
-        case "ArrowDown":
-        case "s":
-            keyDown = true;
-            break;
-    }
-}
-
-function keyReleased(event) {
-    if (event.repeat)
-        return
-    switch(event.key) {
-        case "ArrowRight":
-        case "d":
-            keyRight = false;
-            break;
-        case "ArrowLeft":
-        case "a":
-            keyLeft = false;
-            break;
-
-        case "ArrowUp":
-        case "w":
-            keyUp = false;
-            break;
-        case "ArrowDown":
-        case "s":
-            keyDown = false;
-            break;
-    }
-}
-
 function canMove(newPosition) {
     let canMove = false;
     if (map[Utils.castToInt(newPosition.x)][Utils.castToInt(newPosition.y)] === 0) {
@@ -312,7 +265,7 @@ function canMove(newPosition) {
 function movePlayer(moveSpeed) {
     let moved = false;
 
-    if (keyRight) {
+    if (inputHandler.getArrowKey("right")) {
         var newPosition = new Utils.Vector2(position.x + (plane.x * moveSpeed), position.y + (plane.y * moveSpeed));
         if (canMove(new Utils.Vector2(newPosition.x, position.y)))
             position.x = newPosition.x;
@@ -322,7 +275,7 @@ function movePlayer(moveSpeed) {
         moved = true;
     }
 
-    if (keyLeft) {
+    if (inputHandler.getArrowKey("left")) {
         var newPosition = new Utils.Vector2(position.x - (plane.x * moveSpeed), position.y - (plane.y * moveSpeed));
         if (canMove(new Utils.Vector2(newPosition.x, position.y)))
             position.x = newPosition.x;
@@ -332,7 +285,7 @@ function movePlayer(moveSpeed) {
         moved = true;
     }
 
-    if (keyUp) {
+    if (inputHandler.getArrowKey("up")) {
         var newPosition = new Utils.Vector2(position.x + (direction.x * moveSpeed), position.y + (direction.y * moveSpeed));
         if (canMove(new Utils.Vector2(newPosition.x, position.y)))
             position.x = newPosition.x;
@@ -342,7 +295,7 @@ function movePlayer(moveSpeed) {
         moved = true;
     }
 
-    if (keyDown) {
+    if (inputHandler.getArrowKey("down")) {
         var newPosition = new Utils.Vector2(position.x - (direction.x * moveSpeed), position.y - (direction.y * moveSpeed));
         if (canMove(new Utils.Vector2(newPosition.x, position.y)))
             position.x = newPosition.x;
@@ -379,6 +332,9 @@ function rotatePlayer(event) {
 
 // Main loop
 function main() {
+    // Render textures or not
+    let showTextures = texturesBox.checked;
+
     // Calculate delta time
     timer.calculateDeltaTime();
 
@@ -581,7 +537,7 @@ function main() {
             texturePosition += step;
             
             let dimFactor = 0.8 + (0.2 * perpendicularWallDistance);
-            let fogPercentage = 0.08 * perpendicularWallDistance;
+            let fogPercentage = (fogBox.checked) ? 0.08 * perpendicularWallDistance : 0;
 
             let selectedTexture;
             if (hitDoor)
@@ -590,13 +546,32 @@ function main() {
                 selectedTexture = wallTexture;
 
             // Divide the actual pixel values of the texture by this "dimmess factor" to make it dimmer or brighter
-            let pixelindex = (textureCoords.y * textureWidth + textureCoords.x) * 4;
-            let red = selectedTexture.data[pixelindex] / dimFactor;
+            // Set default wall to dark gray if wall, or lighter gray if door
+            let red = 40;
+            let green = 40;
+            let blue = 40;
+            
+            if (hitDoor) {
+                red = 50;
+                green = 50;
+                blue = 50;
+            }
+            red /=  dimFactor;
             red = red * (1 - fogPercentage) + fogPercentage * 0.1;
-            let green = selectedTexture.data[pixelindex+1] / dimFactor;
+            green /= dimFactor;
             green = green * (1 - fogPercentage) + fogPercentage * 0.1;
-            let blue = selectedTexture.data[pixelindex+2] / dimFactor;
+            blue /= dimFactor;
             blue = blue * (1 - fogPercentage) + fogPercentage * 0.1;
+
+            if (showTextures) { // Calculate wall texture values instead if box is selected
+                let pixelindex = (textureCoords.y * textureWidth + textureCoords.x) * 4;
+                red = selectedTexture.data[pixelindex] / dimFactor;
+                red = red * (1 - fogPercentage) + fogPercentage * 0.1;
+                green = selectedTexture.data[pixelindex+1] / dimFactor;
+                green = green * (1 - fogPercentage) + fogPercentage * 0.1;
+                blue = selectedTexture.data[pixelindex+2] / dimFactor;
+                blue = blue * (1 - fogPercentage) + fogPercentage * 0.1;
+            }
 
             renderer.drawPixel(x, y, red, green, blue);
         }
@@ -625,52 +600,64 @@ function main() {
         if (drawEnd < 0) 
             drawEnd = screenHeight;
 
-        for (let y = 0; y < Utils.castToInt(drawStart)+1; y++) {
-            currentDistance = screenHeight / (screenHeight - 2.0 * (y - pitch));
-
-            let weight = currentDistance / perpendicularWallDistance;
+        for (let y = 0; y < Utils.castToInt(drawStart)+2; y++) {
+            let red = 0; // Set default ceiling texture to black
+            let blue = 0;
+            let green = 0;
             
-            let currentCeiling = new Utils.Vector2(weight * floorCeilingWallPos.x + (1.0 - weight) * position.x,
-                                          weight * floorCeilingWallPos.y + (1.0 - weight) * position.y)
-    
-            let ceilingTex = new Utils.Vector2(Utils.castToInt(currentCeiling.x * textureWidth) % textureWidth,
-                                       Utils.castToInt(currentCeiling.y * textureHeight) % textureHeight);
+            if (showTextures) { // Calculate ceiling texture values instead if box is selected
+                currentDistance = screenHeight / (screenHeight - 2.0 * (y - pitch));
 
-            let dimFactor = 0.9 + (0.2 * (currentDistance));
-            let fogPercentage = 0.08 * currentDistance;
+                let weight = currentDistance / perpendicularWallDistance;
+                
+                let currentCeiling = new Utils.Vector2(weight * floorCeilingWallPos.x + (1.0 - weight) * position.x,
+                                            weight * floorCeilingWallPos.y + (1.0 - weight) * position.y)
+        
+                let ceilingTex = new Utils.Vector2(Utils.castToInt(currentCeiling.x * textureWidth) % textureWidth,
+                                        Utils.castToInt(currentCeiling.y * textureHeight) % textureHeight);
 
-            let pixelindex = (ceilingTex.y * textureWidth + ceilingTex.x) * 4;
-            let red = ceilingTexture.data[pixelindex] / dimFactor;
-            red = red * (1 - fogPercentage) + fogPercentage * 0.1;
-            let green = ceilingTexture.data[pixelindex+1] / dimFactor;
-            green = green * (1 - fogPercentage) + fogPercentage * 0.1;
-            let blue = ceilingTexture.data[pixelindex+2] / dimFactor;
-            blue = blue * (1 - fogPercentage) + fogPercentage * 0.1;
+                let dimFactor = 0.9 + (0.2 * (currentDistance));
+                let fogPercentage = (fogBox.checked) ? 0.08 * currentDistance : 0;
 
+                let pixelindex = (ceilingTex.y * textureWidth + ceilingTex.x) * 4;
+                red = ceilingTexture.data[pixelindex] / dimFactor;
+                red = red * (1 - fogPercentage) + fogPercentage * 0.1;
+                green = ceilingTexture.data[pixelindex+1] / dimFactor;
+                green = green * (1 - fogPercentage) + fogPercentage * 0.1;
+                blue = ceilingTexture.data[pixelindex+2] / dimFactor;
+                blue = blue * (1 - fogPercentage) + fogPercentage * 0.1;
+            }
+            
             renderer.drawPixel(x, y, red, green, blue);
         }
 
-        for (let y = Utils.castToInt(drawEnd)+1; y < screenHeight; y++) {
-            currentDistance = screenHeight / (2.0 * (y - pitch) - screenHeight);
-    
-            let weight = currentDistance / perpendicularWallDistance;
+        for (let y = Utils.castToInt(drawEnd)-2; y < screenHeight; y++) {
+            let red = 0; // Set default floor texture to black
+            let blue = 0;
+            let green = 0;
             
-            let currentFloor = new Utils.Vector2(weight * floorCeilingWallPos.x + (1.0 - weight) * position.x,
-                                          weight * floorCeilingWallPos.y + (1.0 - weight) * position.y)
-    
-            let floorTex = new Utils.Vector2(Utils.castToInt(currentFloor.x * textureWidth) % textureWidth,
-                                       Utils.castToInt(currentFloor.y * textureHeight) % textureHeight);
+            if (showTextures) { // Calculate floor texture values instead if box is selected
+                currentDistance = screenHeight / (2.0 * (y - pitch) - screenHeight);
+        
+                let weight = currentDistance / perpendicularWallDistance;
+                
+                let currentFloor = new Utils.Vector2(weight * floorCeilingWallPos.x + (1.0 - weight) * position.x,
+                                            weight * floorCeilingWallPos.y + (1.0 - weight) * position.y)
+        
+                let floorTex = new Utils.Vector2(Utils.castToInt(currentFloor.x * textureWidth) % textureWidth,
+                                        Utils.castToInt(currentFloor.y * textureHeight) % textureHeight);
 
-            let dimFactor = 0.9 + (0.2 * (currentDistance));
-            let fogPercentage = 0.08 * currentDistance;
+                let dimFactor = 0.9 + (0.2 * (currentDistance));
+                let fogPercentage = (fogBox.checked) ? 0.08 * currentDistance : 0;
 
-            let pixelindex = (floorTex.y * textureWidth + floorTex.x) * 4;
-            let red = groundTexture.data[pixelindex] / dimFactor;
-            red = red * (1 - fogPercentage) + fogPercentage * 0.1;
-            let green = groundTexture.data[pixelindex+1] / dimFactor;
-            green = green * (1 - fogPercentage) + fogPercentage * 0.1;
-            let blue = groundTexture.data[pixelindex+2] / dimFactor;
-            blue = blue * (1 - fogPercentage) + fogPercentage * 0.1;
+                let pixelindex = (floorTex.y * textureWidth + floorTex.x) * 4;
+                red = groundTexture.data[pixelindex] / dimFactor;
+                red = red * (1 - fogPercentage) + fogPercentage * 0.1;
+                green = groundTexture.data[pixelindex+1] / dimFactor;
+                green = green * (1 - fogPercentage) + fogPercentage * 0.1;
+                blue = groundTexture.data[pixelindex+2] / dimFactor;
+                blue = blue * (1 - fogPercentage) + fogPercentage * 0.1;
+            }
 
             renderer.drawPixel(x, y, red, green, blue);
         }

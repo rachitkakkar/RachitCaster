@@ -4,10 +4,11 @@ export class InputHandler {
         this.keyLeft = false;
         this.keyUp = false;
         this.keyDown = false;
+    }
 
-        
-        document.addEventListener("keydown", keyPush);
-        document.addEventListener("keyup", keyReleased);
+    bind() {
+        document.addEventListener("keydown", this.keyPush.bind(this));
+        document.addEventListener("keyup", this.keyReleased.bind(this));
     }
 
     keyPush(event) {

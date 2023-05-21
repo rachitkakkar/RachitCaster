@@ -132,6 +132,17 @@ export class RenderBuffer {
         }
     }
 
+    /**
+     * Draws eight symmetric pixels. Part of Bresenham’s circle drawing algorithm.
+     *
+     * @param {number} xc The x-position of the center of the circle.
+     * @param {number} yc The y-position of the center of the circle.
+     * @param {number} x The x-offset from the center of the circle.
+     * @param {number} y The y-offset from the center of the circle.
+     * @param {number} red The red value of the RGB color of the pixels.
+     * @param {number} green The green value of the RGB color of the pixels.
+     * @param {number} blue The blue value of the RGB color of the pixels.
+     */
     eightWayPlot(xc, yc, x, y, red, green, blue) {
         this.drawPixel(xc+x, yc+y, red, green, blue);
         this.drawPixel(xc-x, yc+y, red, green, blue);
@@ -143,7 +154,17 @@ export class RenderBuffer {
         this.drawPixel(xc-y, yc-x, red, green, blue);
     }
 
-    drawCircle(centerX, centerY, radius, red, green, blue) { // Bresenham’s circle drawing algorithm
+    /**
+     * Draws a circle (outline) using Bresenham’s circle drawing algorithm.
+     * 
+     * @param {number} centerX The x-position of the center of the circle.
+     * @param {number} centerY The y-position of the center of the circle.
+     * @param {number} radius The radius of the circle.
+     * @param {number} red The red value of the RGB color of the circle.
+     * @param {number} green The green value of the RGB color of the circle.
+     * @param {number} blue The blue value of the RGB color of the circle.
+     */
+    drawCircle(centerX, centerY, radius, red, green, blue) {
         let x = 0;
         let y = radius;
         let d = 3 - 2 * radius;
@@ -163,7 +184,17 @@ export class RenderBuffer {
         }
     }
 
-    drawFilledCircle(centerX, centerY, radius, red, green, blue) { // Solution from StackOverflow
+    /**
+     * Draws a filled circle using a solution from StackOverflow.
+     * 
+     * @param {number} centerX The x-position of the center of the circle.
+     * @param {number} centerY The y-position of the center of the circle.
+     * @param {number} radius The radius of the circle.
+     * @param {number} red The red value of the RGB color of the circle.
+     * @param {number} green The green value of the RGB color of the circle.
+     * @param {number} blue The blue value of the RGB color of the circle.
+     */
+    drawFilledCircle(centerX, centerY, radius, red, green, blue) {
         for (let x = -radius; x <= radius ; x++) {
             let hh = castToInt(Math.sqrt(radius * radius - x * x));
             let rx = centerX + x;
@@ -174,6 +205,11 @@ export class RenderBuffer {
         }
     }
 
+    /**
+     * Draws white text on the canvas.
+     * 
+     * 
+     */
     drawWhiteText(font, text, x, y, ctx) {
         ctx.font = font;
         ctx.fillStyle = "white";

@@ -29,6 +29,8 @@
         position: absolute;
         top: 13px;
         left: 50%;
+        padding: 0;
+        margin: 0;
         transform: translate(-50%, -50%);
     }
 
@@ -51,7 +53,21 @@
             <svg xmlns="http://www.w3.org/2000/svg" width="54" height="14" viewBox="0 0 54 14"><g fill="none" fill-rule="evenodd" transform="translate(1 1)"><circle cx="6" cy="6" r="6" fill="#FF5F56" stroke="#E0443E" stroke-width=".5"></circle><circle cx="26" cy="6" r="6" fill="#FFBD2E" stroke="#DEA123" stroke-width=".5"></circle><circle cx="46" cy="6" r="6" fill="#27C93F" stroke="#1AAB29" stroke-width=".5"></circle></g></svg>
         </div>
         <canvas id="canvas">Your browser doesn't support HTML5 Canvas</canvas>
+        <fieldset>
+            <legend>Options</legend>
+        
+            <div>
+              <input type="checkbox" id="textures" name="textures" checked>
+              <label for="textures">Textures enabled</label>
+            </div>
+
+            <div>
+                <input type="checkbox" id="fog" name="textures" checked>
+                <label for="fog">Fog enabled</label>
+              </div>
+        </fieldset>
     </div>
+
     <script type="module" src="raycaster.js"></script>
 </body>
 </html>
