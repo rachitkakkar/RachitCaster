@@ -14,6 +14,18 @@ const screenHeight = Utils.castToInt(screenWidth / aspectRatio);
 const texturesBox = document.getElementById('textures');
 const fogBox = document.getElementById('fog');
 
+var showTextures;
+var showFog;
+function handleOptions() {
+    // Get values from options
+    showTextures  = texturesBox.checked;
+    showFog = fogBox.checked;
+}
+handleOptions();
+
+texturesBox.addEventListener("click", handleOptions, false);
+fogBox.addEventListener("click", handleOptions, false);
+
 // Dealing with canvas (setting dimensions, creating context)
 canvas.width = screenWidth;
 canvas.height = screenHeight;
@@ -26,13 +38,6 @@ var instructionPrompt = new Prompt("CLICK TO LOCK MOUSE CURSOR. ARROW KEYS OR WA
 
 // Variables needed for delta time calculation
 var timer = new Timer();
-
-// Structures
-function Sprite(x, y, texture) {
-    this.x = x;
-    this.y = y;
-    this.texture = texture;
-}
 
 function Door(position, offset, state, side) {
     this.position = position;
@@ -332,9 +337,6 @@ function rotatePlayer(event) {
 
 // Main loop
 function main() {
-    // Render textures or not
-    let showTextures = texturesBox.checked;
-
     // Calculate delta time
     timer.calculateDeltaTime();
 
@@ -537,7 +539,7 @@ function main() {
             texturePosition += step;
             
             let dimFactor = 0.8 + (0.2 * perpendicularWallDistance);
-            let fogPercentage = (fogBox.checked) ? 0.08 * perpendicularWallDistance : 0;
+            let fogPercentage = (showFog) ? 0.08 * perpendicularWallDistance : 0;
 
             let selectedTexture;
             if (hitDoor)
@@ -617,7 +619,7 @@ function main() {
                                         Utils.castToInt(currentCeiling.y * textureHeight) % textureHeight);
 
                 let dimFactor = 0.9 + (0.2 * (currentDistance));
-                let fogPercentage = (fogBox.checked) ? 0.08 * currentDistance : 0;
+                let fogPercentage = (showFog) ? 0.08 * currentDistance : 0;
 
                 let pixelindex = (ceilingTex.y * textureWidth + ceilingTex.x) * 4;
                 red = ceilingTexture.data[pixelindex] / dimFactor;
@@ -648,7 +650,7 @@ function main() {
                                         Utils.castToInt(currentFloor.y * textureHeight) % textureHeight);
 
                 let dimFactor = 0.9 + (0.2 * (currentDistance));
-                let fogPercentage = (fogBox.checked) ? 0.08 * currentDistance : 0;
+                let fogPercentage = (showFog) ? 0.08 * currentDistance : 0;
 
                 let pixelindex = (floorTex.y * textureWidth + floorTex.x) * 4;
                 red = groundTexture.data[pixelindex] / dimFactor;
