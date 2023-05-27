@@ -4,11 +4,25 @@ export class InputHandler {
         this.keyLeft = false;
         this.keyUp = false;
         this.keyDown = false;
+
+        this.onClickActions = [];
+        this.onPointerLockMoveActions = [];
     }
 
-    bind() {
+    bind(canvas) {
         document.addEventListener("keydown", this.keyPush.bind(this));
         document.addEventListener("keyup", this.keyReleased.bind(this));
+
+        canvas.addEventListener("click", this.onClick.bind(this));
+        document.addEventListener("pointerlockchange", this.onPointerLockMove.bind(this, canvas), false);
+    }
+
+    bindOnClickAction(action) {
+        this.onClickActions.push(action);
+    }
+    
+    bindOnPointerLockMoveAction(action) {
+        this.onPointerLockMoveActions.push(action)
     }
 
     keyPush(event) {
@@ -54,6 +68,34 @@ export class InputHandler {
             case "s":
                 this.keyDown = false;
                 break;
+        }
+    }
+
+    async onClick() {
+        if (!document.pointerLockElement) {
+            await canvas.requestPointerLock({
+                unadjustedMovement: true,
+            });
+        }
+        
+        this.onClickActions.map((action) => {
+            action.call();
+        });
+    }
+
+    onPointerLockMove(canvas) {
+        if (document.pointerLockElement === canvas) {
+            // console.log("The pointer lock status is now locked");
+
+            this.onPointerLockMoveActions.map((action) => {
+                document.addEventListener("mousemove", action, false);
+            });
+        } else {
+            // console.log("The pointer lock status is now unlocked");
+
+            this.onPointerLockMoveActions.map((action) => {
+                document.removeEventListener("mousemove", action, false);
+            });
         }
     }
 

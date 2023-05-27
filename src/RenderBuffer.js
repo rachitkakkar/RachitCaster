@@ -208,7 +208,11 @@ export class RenderBuffer {
     /**
      * Draws white text on the canvas.
      * 
-     * 
+     * @param {string} font The font used to draw the text.
+     * @param {string} text The text to draw on the canvas.
+     * @param {x} x The x-position of the canvas.
+     * @param {y} y The y-position of the canvas.
+     * @param {CanvasRenderingContext2D} ctx The context of the canvas.
      */
     drawWhiteText(font, text, x, y, ctx) {
         ctx.font = font;
@@ -216,6 +220,9 @@ export class RenderBuffer {
         ctx.fillText(text, x, y);
     }
 
+    /**
+     * Sets every pixel of the buffer to black.
+     */
     clearScreen() {
         for (let x = 0; x < this.screenWidth; x++) {
             for (let y = 0; y < this.screenHeight; y++) {
@@ -224,14 +231,25 @@ export class RenderBuffer {
         }
     }
 
+    /**
+     * Renders/draws the actual buffer (ImageData) to the screen.
+     *
+     * @param {CanvasRenderingContext2D} ctx The context of the canvas.
+     */
     renderBuffer(ctx) {
         ctx.putImageData(this.buffer, 0, 0);
     }
     
+    /**
+     * Returns width of the buffer.
+     */
     getWidth() {
         return this.screenWidth;
     }
 
+    /**
+     * Returns height of the buffer.
+     */
     getHeight() {
         return this.screenHeight;
     }

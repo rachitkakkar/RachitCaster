@@ -1,5 +1,6 @@
 import { RenderBuffer } from "./src/RenderBuffer.js";
 import { InputHandler } from "./src/InputHandler.js";
+import { Texture } from "./src/Texture.js";
 import { Prompt } from "./src/Prompt.js";
 import { Timer } from "./src/Timer.js";
 
@@ -229,28 +230,9 @@ var pitch = 0.0;
 
 // Input and key handling
 var inputHandler = new InputHandler();
-inputHandler.bind();
-
-canvas.addEventListener("click", async () => {
-    if(!document.pointerLockElement) {
-      await canvas.requestPointerLock({
-        unadjustedMovement: true,
-      });
-    }
-
-    instructionPrompt.hide();
-});
-document.addEventListener("pointerlockchange", lockChangeAlert, false);
-
-function lockChangeAlert() {
-    if (document.pointerLockElement === canvas) {
-        console.log("The pointer lock status is now locked");
-        document.addEventListener("mousemove", rotatePlayer, false);
-    } else {
-        console.log("The pointer lock status is now unlocked");
-        document.removeEventListener("mousemove", rotatePlayer, false);
-    }
-}  
+inputHandler.bind(canvas);
+inputHandler.bindOnClickAction(instructionPrompt.hide.bind(instructionPrompt));
+inputHandler.bindOnPointerLockMoveAction(rotatePlayer)
 
 function canMove(newPosition) {
     let canMove = false;
@@ -539,7 +521,7 @@ function main() {
             texturePosition += step;
             
             let dimFactor = 0.8 + (0.2 * perpendicularWallDistance);
-            let fogPercentage = (showFog) ? 0.08 * perpendicularWallDistance : 0;
+            let fogPercentage = (showFog) ? 0.1 * perpendicularWallDistance : 0;
 
             let selectedTexture;
             if (hitDoor)
@@ -549,15 +531,16 @@ function main() {
 
             // Divide the actual pixel values of the texture by this "dimmess factor" to make it dimmer or brighter
             // Set default wall to dark gray if wall, or lighter gray if door
-            let red = 40;
-            let green = 40;
-            let blue = 40;
+            let red = 80;
+            let green = 80;
+            let blue = 80;
             
             if (hitDoor) {
-                red = 50;
-                green = 50;
-                blue = 50;
+                red = 120;
+                green = 120;
+                blue = 120;
             }
+
             red /=  dimFactor;
             red = red * (1 - fogPercentage) + fogPercentage * 0.1;
             green /= dimFactor;
@@ -619,7 +602,7 @@ function main() {
                                         Utils.castToInt(currentCeiling.y * textureHeight) % textureHeight);
 
                 let dimFactor = 0.9 + (0.2 * (currentDistance));
-                let fogPercentage = (showFog) ? 0.08 * currentDistance : 0;
+                let fogPercentage = (showFog) ? 0.1 * currentDistance : 0;
 
                 let pixelindex = (ceilingTex.y * textureWidth + ceilingTex.x) * 4;
                 red = ceilingTexture.data[pixelindex] / dimFactor;
@@ -650,7 +633,7 @@ function main() {
                                         Utils.castToInt(currentFloor.y * textureHeight) % textureHeight);
 
                 let dimFactor = 0.9 + (0.2 * (currentDistance));
-                let fogPercentage = (showFog) ? 0.08 * currentDistance : 0;
+                let fogPercentage = (showFog) ? 0.1 * currentDistance : 0;
 
                 let pixelindex = (floorTex.y * textureWidth + floorTex.x) * 4;
                 red = groundTexture.data[pixelindex] / dimFactor;
@@ -725,6 +708,9 @@ var wallTexture;
 var groundTexture;
 var ceilingTexture;
 var doorTexture;
+
+var tempTexure = new Texture('textures/bricks.png', 64, 64);
+tempTexure.load(ctx);
 
 Utils.loadImages(textureUrls).then(textures => {
     ctx.drawImage(textures[0], 0, 0);
