@@ -142,7 +142,7 @@ export function interpolate(i0, d0, i1, d1) {
  * Vector2 representing A two value vector object/structure.
  * 
  * @param {number} x The x value of the vector.
- * @param {number} y TThe y value of the vector.
+ * @param {number} y The y value of the vector.
  */
 export function Vector2(x, y) {
     this.x = x;

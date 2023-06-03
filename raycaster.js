@@ -1,9 +1,9 @@
-import { RenderBuffer } from "./src/RenderBuffer.js";
 import { InputHandler } from "./src/InputHandler.js";
-import { Texture } from "./src/Texture.js";
+import { Map } from './src/Map.js';
 import { Prompt } from "./src/Prompt.js";
+import { RenderBuffer } from "./src/RenderBuffer.js";
 import { Timer } from "./src/Timer.js";
-
+import { MiniMap } from "./src/MiniMap.js";
 import * as Utils from "./src/Utils.js";
 
 // Screen dimensions (scaled to 70% of window with 16/10 aspect ratio)
@@ -40,183 +40,15 @@ var instructionPrompt = new Prompt("CLICK TO LOCK MOUSE CURSOR. ARROW KEYS OR WA
 // Variables needed for delta time calculation
 var timer = new Timer();
 
-function Door(position, offset, state, side) {
-    this.position = position;
-    this.offset = offset;
-    this.state = state;
-    this.side = side;
-    this.trigger = false;
-}
-
 // World representation
-function generateMaze(mazeWidth, mazeHeight) {
-    if (mazeWidth !== mazeHeight || mazeHeight % 2 !== 1) // Constraints to make the algorithm simple
-        return "Error: Size must be odd and square!"
-
-    // Generate maze as a 2D array: 1 = WALL and 0 = SPACE
-    // The maze starts as a solid block filled with ones.
-    let maze = [];
-    for (let x = 0; x < mazeWidth; x++) {
-        let row = [];
-        for (let y = 0; y < mazeHeight; y++) {
-            row.push(1);
-        }
-        maze.push(row);
-    }
-
-    // Use the binary tree maze generation algorithm to carve out spaces in the block generated earlier
-    // The algorithm runs on everything except the two columns on the right and rows on the bottom
-    for (let x = 1; x < mazeWidth-2; x += 2) { // Increment by 2 to modify every other value
-                                               // This is done to allow "walls" to exist in-between cells
-        for (let y = 1; y < mazeHeight-2; y += 2) {
-            maze[x][y] = 0; // Carve out this value by setting it to 0
-            
-            let direction; // Choose a direction to carve out another wall and create a pathway
-            if (x === 1 && y === 1) // If this is the top left cell where the player is, set the direction to the right so the player is not facing a wall
-                direction = 0;
-            else
-                direction = Math.floor(Math.random() * 2); // Otherwise, choose a random direction
-            if (direction === 0) // Carve out the right wall
-                maze[x+1][y] = 0;
-            if (direction === 1) // Carve out the bottom wall
-                maze[x][y+1] = 0;
-        }
-    }
-
-    // Empty out every cell in the right-most and bottom-most corrider in order to make sure every area of the maze is accesible. 
-    // The width and height are subtracted by 1 in order to create a boundary around the outside of the maze.
-    for (let y = 1; y < mazeHeight-1; y++)
-        maze[mazeWidth-2][y] = 0; 
-    for (let x = 1; x < mazeWidth-1; x++)
-        maze[x][mazeHeight-2] = 0; 
-
-    /*
-    VISUAL DEMONSTRATION
-    --------------------------
-    1. Solid Square 2D Array of Blocks
-    #########
-    #########
-    #########
-    #########
-    #########
-    #########
-    #########
-    #########
-    #########
-    
-    2. Carve Out Every Other Block (Except The Two Right Columns and Two Bottom Rows)
-    #########
-    # # # ###
-    #########
-    # # # ###
-    #########
-    # # # ###
-    #########
-    #########
-    #########
-
-    3. At The Same Time, Choose A Random Direction (Right Or Down) To Carve Out A Pathway For Each Of These Blocks 
-    #########                         #########
-    # ^ # ^##                         #   #  ##
-    ###^#####                         ### #####
-    # ^ # ###                         #   # ###
-    ###^#^### ----------------------> ### # ###
-    # ^ # ###                         #   # ###
-    ###^#^###                         ### # ###
-    #########                         #########
-    #########                         #########
-    ^ = Chosen cells to carve out
-
-    4. Carve Out The Right-most Column And Bottom-most Row
-    #########
-    #   #   #
-    ### ### #
-    #   # # #
-    ### # # #
-    #   # # #
-    ### # # #
-    #       #
-    #########
-
-    And Bam! We have a maze!
-    */
-
-    return maze;
-}
-
-function generateDoors(map, mapWidth, mapHeight) {
-    let doors = [];
-
-    let attempts = 0;
-    let giveUp = false;
-    while (doors.length < 5 && !giveUp) { // Vertical
-        let potentialX = Math.floor(Math.random() * (mapWidth-3)) + 1;
-        let potentialY = Math.max(Math.floor(Math.random() * (mapHeight-2)), 5);
-
-        let viable = true;
-
-        for (let i = 0; i < 5; i++) {
-            if (map[potentialX][potentialY - i] !== 0 || map[potentialX+1][potentialY] !== 1 || map[potentialX-1][potentialY] !== 1)
-                viable = false;
-        }
-
-        for (const door of doors) {
-            if (door.position.x === potentialX)
-                viable = false;
-        }
-
-        if (viable) {
-            doors.push(new Door(new Utils.Vector2(potentialX, potentialY), 0.0, 'closed', 1))
-            attempts = 0;
-        }
-
-        if (attempts >= 150)
-            giveUp = true;
-        attempts++;
-    }
-
-    
-    attempts = 0;
-    giveUp = false;
-    while (doors.length < 10 && !giveUp) { // Vertical
-        let potentialX = Math.max(Math.floor(Math.random() * (mapWidth-2)), 5);
-        let potentialY = Math.floor(Math.random() * (mapHeight-3)) + 1;
-
-        let viable = true;
-
-        for (let i = 0; i < 5; i++) {
-            if (map[potentialX - i][potentialY] !== 0 || map[potentialX][potentialY+1] !== 1 || map[potentialX][potentialY-1] !== 1)
-                viable = false;
-        }
-
-        for (const door of doors) {
-            if (door.position.y === potentialY)
-                viable = false;
-        }
-
-        if (viable) {
-            doors.push(new Door(new Utils.Vector2(potentialX, potentialY), 0.0, 'closed', 0))
-            attempts = 0;
-        }
-
-        if (attempts >= 150)
-            giveUp = true;
-        attempts++;
-    }
-
-    return doors;
-}
-
-const mapWidth = 25;
-const mapHeight = 25;
-const map = generateMaze(mapWidth, mapHeight); // 25 x 25 procedural maze
-var doors = generateDoors(map, mapWidth, mapHeight);
+var map = new Map(25, 25); // 25 x 25 procedural maze
 
 // Minimap and crosshair values (calculated based on screen dimensions)
 var blockSize = Utils.castToInt(screenWidth / 110);
-var crosshairSizeShort = Utils.castToInt(blockSize / 6);
 var padding = Utils.castToInt(blockSize / 2);
 var playerSize = Utils.castToInt(padding * 4/5);
+
+var miniMap = new MiniMap(blockSize, playerSize, padding);
 
 // Player
 const MOVE_SPEED = 3.7;
@@ -236,13 +68,8 @@ inputHandler.bindOnPointerLockMoveAction(rotatePlayer)
 
 function canMove(newPosition) {
     let canMove = false;
-    if (map[Utils.castToInt(newPosition.x)][Utils.castToInt(newPosition.y)] === 0) {
-        canMove = true;
-
-        for (const door of doors) {
-            if (door.trigger && door.state !== 'open') // Player has triggered door and door is not open
-                canMove = false;
-        }
+    if (map.getMapValue(newPosition.x, newPosition.y) === 0) {
+        canMove = map.playerCanPassThroughAllDoors();
     }
 
     return canMove;
@@ -336,24 +163,8 @@ function main() {
         pitch = clipPitch;
 
     // Update doors
-    for (const door of doors) {
-        if (door.trigger) {
-            door.trigger = false;
-        }
-        else {
-            if (door.state === 'open' || door.state === 'opening')
-                door.state = 'closing';
-
-            if (door.offset > 0 && door.state === 'closing')
-                door.offset -= timer.getDeltaTime();
-            if (door.offset <= 0) {
-                door.state = 'closed';
-                door.offset = 0;
-            }
-        }
-    }
+    map.resetDoors(timer);
     
-    let raysOnMap = [];
     for (let x = 0; x < screenWidth; x++) {
         let cameraX = 2 * x / screenWidth - 1;
         let rayDirection = new Utils.Vector2(direction.x + plane.x * cameraX, direction.y + plane.y * cameraX);
@@ -370,8 +181,7 @@ function main() {
         var step = new Utils.Vector2();
         let hit = false;
         let hitDoor = false;
-        let doorOffset;
-        let doorState;
+        let selectedDoor;
         let side;
 
         if (rayDirection.x < 0) {
@@ -406,65 +216,15 @@ function main() {
             }
 
             // Collision with normal wall
-            if (map[mapCoords.x][mapCoords.y] > 0) {
+            if (map.getMapValue(mapCoords.x, mapCoords.y) > 0) {
                 hit = true;
             }
 
             // Collision with door
-            for (const door of doors) {
-                if (door.side === 0) { // Horizontal
-                    if (position.x < door.position.x+1.15 && position.x > door.position.x-0.15 && Utils.castToInt(position.y) === door.position.y) // X value close to door, same row
-                        door.trigger = true;
-                }
-
-                else { // Vertical
-                    if (position.y < door.position.y+1.15 && position.y > door.position.y-0.15 && Utils.castToInt(position.x) === door.position.x)  // Y value close to door, same column
-                        door.trigger = true;
-                }
-
-                if (door.position.x === mapCoords.x && door.position.y === mapCoords.y && !hitDoor) {
-                    hit = true;
-                    hitDoor = true;
-                    let doorDistance;
-
-                    if (side === 0) {
-                        doorDistance = sideDistance.x + deltaDistance.x / 2 - deltaDistance.x;
-                        let hitX = position.y +  doorDistance * rayDirection.y;
-                        hitX -= Math.floor(hitX);
-
-                        if (!(sideDistance.x - (deltaDistance.x/2) < sideDistance.y) || 1.0 - hitX <= door.offset) {
-                            hit = false;
-                            hitDoor = false;
-                        }
-                    }
-                    
-                    if (side === 1) {
-                        doorDistance = sideDistance.y + deltaDistance.y / 2 - deltaDistance.y;
-                        let hitX = position.x + doorDistance * rayDirection.x;
-                        hitX -= Math.floor(hitX);
-
-                        if (!(sideDistance.y - (deltaDistance.y/2) < sideDistance.x) || 1.0 - hitX < door.offset) {
-                            hit = false;
-                            hitDoor = false;
-                        }
-                    }
-
-                    if (hitDoor) {
-                        doorOffset = door.offset;
-                        doorState = door.state;
-                    }
-                }
-
-                if (door.trigger) {
-                    if (door.state !== 'open')
-                        door.state = 'opening';
-
-                    if (door.offset >= 0.95)
-                        door.state = 'open';
-                }
-
-                if (door.offset < 0.95 && door.state === 'opening')
-                    door.offset += (timer.getDeltaTime() * 0.0015);
+            selectedDoor = map.checkCollisionWithDoor(position, side, sideDistance, deltaDistance, rayDirection, mapCoords, timer);
+            if (selectedDoor !== null) {
+                hit = true;
+                hitDoor = true;
             }
         }
 
@@ -485,9 +245,8 @@ function main() {
             perpendicularWallDistance = (sideDistance.y - deltaDistance.y);
         }
 
-        let rayOnMap = new Utils.Vector2(((position.x + (rayDirection.x * perpendicularWallDistance)) * blockSize) + (screenWidth - mapWidth * blockSize - padding),
-                                    (position.y + (rayDirection.y * perpendicularWallDistance)) * blockSize + padding);        
-        raysOnMap.push(rayOnMap);
+        // Add ray to be rendered on mini-map
+        miniMap.addRay(renderer, map, position, rayDirection, perpendicularWallDistance);
         
         let lineHeight = Utils.castToInt(screenHeight / perpendicularWallDistance);
         let drawStart = screenHeight / 2 - lineHeight / 2 + pitch;
@@ -506,8 +265,8 @@ function main() {
 
         let textureCoords = new Utils.Vector2();
         let offsetedWallX = wallX;
-        if (hitDoor && doorState !== 'closed')
-            offsetedWallX += doorOffset;
+        if (hitDoor && selectedDoor.state !== 'closed')
+            offsetedWallX += selectedDoor.offset;
         textureCoords.x = Utils.castToInt(offsetedWallX * textureWidth);
         if (side === 0 && rayDirection.x > 0)
             textureCoords.x = textureWidth - textureCoords.x - 1;
@@ -516,7 +275,7 @@ function main() {
 
         var step = 1.0 * textureHeight / lineHeight;
         let texturePosition = (drawStart - pitch - screenHeight / 2 + lineHeight / 2) * step;
-        for (let y = Utils.castToInt(drawStart)+1; y < Utils.castToInt(drawEnd)+1; y++) {
+        for (let y = Utils.castToInt(drawStart); y < Utils.castToInt(drawEnd); y++) {
             textureCoords.y = Utils.castToInt(texturePosition) & (textureHeight - 1);
             texturePosition += step;
             
@@ -585,7 +344,7 @@ function main() {
         if (drawEnd < 0) 
             drawEnd = screenHeight;
 
-        for (let y = 0; y < Utils.castToInt(drawStart)+2; y++) {
+        for (let y = 0; y < Utils.castToInt(drawStart); y++) {
             let red = 0; // Set default ceiling texture to black
             let blue = 0;
             let green = 0;
@@ -616,7 +375,7 @@ function main() {
             renderer.drawPixel(x, y, red, green, blue);
         }
 
-        for (let y = Utils.castToInt(drawEnd)-2; y < screenHeight; y++) {
+        for (let y = Utils.castToInt(drawEnd); y < screenHeight; y++) {
             let red = 0; // Set default floor texture to black
             let blue = 0;
             let green = 0;
@@ -649,41 +408,7 @@ function main() {
     }
 
     // Render minimap
-    renderer.drawRectangle((screenWidth - mapWidth * blockSize - padding), padding, mapWidth * blockSize, mapHeight * blockSize, 66, 66, 66);
-    let adjustedPosition = new Utils.Vector2((position.x * blockSize) + (screenWidth - mapWidth * blockSize - padding),
-                                       position.y * blockSize + padding); 
-    renderer.drawFilledCircle(adjustedPosition.x, adjustedPosition.y, playerSize, 255, 92, 92);
-    raysOnMap.forEach(rayOnMap =>
-        renderer.drawLine(adjustedPosition, rayOnMap, 255, 92, 92)
-    );
-    renderer.drawCircle(adjustedPosition.x, adjustedPosition.y, playerSize, 255, 255, 255);
-    
-    for (const door of doors) {
-        if (door.side === 0) {
-            let doorBlockLength = (blockSize - 1) * (1.0 - door.offset);
-            let doorBlockWidth = Utils.castToInt(blockSize / 2.5);
-
-            let adjustedDoorX = ((door.position.x + 0.5) * blockSize + (screenWidth - mapWidth * blockSize - padding)) - doorBlockWidth / 1.5;
-            let adjustedDoorY = (door.position.y * blockSize + padding);
-            renderer.drawRectangle(adjustedDoorX, adjustedDoorY, doorBlockWidth, doorBlockLength, 200, 200, 200);
-        }
-
-        if (door.side === 1) {
-            let doorBlockLength = Utils.castToInt(blockSize / 2.5);
-            let doorBlockWidth = (blockSize - 1) * (1.0 - door.offset);
-
-            let adjustedDoorX = (door.position.x * blockSize + (screenWidth - mapWidth * blockSize - padding));
-            let adjustedDoorY = ((door.position.y + 0.5) * blockSize + padding) - doorBlockLength / 1.5;
-            renderer.drawRectangle(adjustedDoorX, adjustedDoorY, doorBlockWidth, doorBlockLength, 200, 200, 200);
-        }
-    }
-
-    for (let x = 0; x < mapWidth; x++) {
-        for (let y = 0; y < mapHeight; y++) {
-            if (map[x][y] > 0)
-                renderer.drawRectangle((x * blockSize) + (screenWidth - mapWidth * blockSize - padding), y * blockSize + padding, blockSize - 1, blockSize - 1, 255, 255, 255);
-        }
-    }
+    miniMap.renderMap(renderer, map, position);
 
     // Render crosshair
     renderer.drawRectangle(screenWidth / 2, screenHeight / 2 - 9, 2, 20, 255, 255, 255);
@@ -708,9 +433,6 @@ var wallTexture;
 var groundTexture;
 var ceilingTexture;
 var doorTexture;
-
-var tempTexure = new Texture('textures/bricks.png', 64, 64);
-tempTexure.load(ctx);
 
 Utils.loadImages(textureUrls).then(textures => {
     ctx.drawImage(textures[0], 0, 0);

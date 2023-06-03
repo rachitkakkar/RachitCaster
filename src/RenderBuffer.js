@@ -16,12 +16,10 @@ export class RenderBuffer {
          * @property {number} screenWidth The width of the buffer.
          */
         this.screenWidth = screenWidth;
-
         /**
          * @property {number} screenHeight The height of the buffer.
          */
         this.screenHeight = screenHeight;
-
         /**
          * @property {ImageData} buffer The actual buffer (same size as screen).
          */
