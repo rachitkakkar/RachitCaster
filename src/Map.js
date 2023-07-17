@@ -1,5 +1,11 @@
 import { castToInt, Vector2 } from "./Utils.js";
 
+/**
+ * Internal function that generates a maze as a 2D array: 1 = WALL and 0 = SPACE
+ * 
+ * @param {number} mazeWidth The width of the maze/array.
+ * @param {number} mazeHeight The height of the maze/array.
+ */
 function generateMaze(mazeWidth, mazeHeight) {
     if (mazeWidth !== mazeHeight || mazeHeight % 2 !== 1) // Constraints to make the algorithm simple
         return "Error: Size must be odd and square!"
@@ -95,6 +101,13 @@ function generateMaze(mazeWidth, mazeHeight) {
     return maze;
 }
 
+/**
+ * Function that is used to represent a door.
+ * 
+ * @param {Vector2} position The position of the door in the map.
+ * @param {number} offset How open the door is from 0-1 (0 means the door is completely closed; 1 means the door is open).
+ * @param {string} state The state of the door (either "open", "closed", "opening", or "closing").
+ */
 function Door(position, offset, state, side) {
     this.position = position;
     this.offset = offset;
@@ -103,6 +116,13 @@ function Door(position, offset, state, side) {
     this.trigger = false;
 }
 
+/**
+ * Function that generates a list of unique door positions randomly based on the generated map.
+ * 
+ * @param {Vector2} position The position of the door in the map.
+ * @param {number} offset How open the door is from 0-1 (0 means the door is completely closed; 1 means the door is open).
+ * @param {string} state The state of the door (either "open", "closed", "opening", or "closing").
+ */
 function generateDoors(map, mapWidth, mapHeight) {
     let doors = [];
 
@@ -125,7 +145,7 @@ function generateDoors(map, mapWidth, mapHeight) {
         }
 
         if (viable) {
-            doors.push(new Door(new Vector2(potentialX, potentialY), 0.0, 'closed', 1))
+            doors.push(new Door(new Vector2(potentialX, potentialY), 0.0, "closed", 1))
             attempts = 0;
         }
 
@@ -154,7 +174,7 @@ function generateDoors(map, mapWidth, mapHeight) {
         }
 
         if (viable) {
-            doors.push(new Door(new Vector2(potentialX, potentialY), 0.0, 'closed', 0))
+            doors.push(new Door(new Vector2(potentialX, potentialY), 0.0, "closed", 0))
             attempts = 0;
         }
 

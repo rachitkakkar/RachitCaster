@@ -1,9 +1,11 @@
 import { InputHandler } from "./src/InputHandler.js";
-import { Map } from './src/Map.js';
+import { Map } from "./src/Map.js";
 import { Prompt } from "./src/Prompt.js";
 import { RenderBuffer } from "./src/RenderBuffer.js";
 import { Timer } from "./src/Timer.js";
 import { MiniMap } from "./src/MiniMap.js";
+import { OptionsHandler } from "./src/OptionsHandler.js";
+
 import * as Utils from "./src/Utils.js";
 
 // Screen dimensions (scaled to 70% of window with 16/10 aspect ratio)
@@ -11,40 +13,29 @@ const aspectRatio = 16.0 / 10.0;
 const screenWidth = Utils.castToInt(window.innerWidth * 0.7);
 const screenHeight = Utils.castToInt(screenWidth / aspectRatio);
 
-// Handle options
-const texturesBox = document.getElementById('textures');
-const fogBox = document.getElementById('fog');
-
-var showTextures;
-var showFog;
-function handleOptions() {
-    // Get values from options
-    showTextures  = texturesBox.checked;
-    showFog = fogBox.checked;
-}
-handleOptions();
-
-texturesBox.addEventListener("click", handleOptions, false);
-fogBox.addEventListener("click", handleOptions, false);
-
 // Dealing with canvas (setting dimensions, creating context)
 canvas.width = screenWidth;
 canvas.height = screenHeight;
-
 var ctx = canvas.getContext("2d");
 var renderer = new RenderBuffer(screenWidth, screenHeight, ctx);
 
-// Instruction prompt animation, includes everything needed to render the animated prompt at the beginning (calculated based on screen dimensions)
-var instructionPrompt = new Prompt("CLICK TO LOCK MOUSE CURSOR. ARROW KEYS OR WASD TO MOVE.", screenWidth);
-
-// Variables needed for delta time calculation
-var timer = new Timer();
-
-// World representation
+// Setup
+var instructionPrompt = new Prompt("CLICK TO LOCK MOUSE CURSOR. ARROW KEYS OR WASD TO MOVE.", screenWidth); // Animated prompt at beginning
+var timer = new Timer(); // For delta time
 var map = new Map(25, 25); // 25 x 25 procedural maze
 
-// Minimap and crosshair values (calculated based on screen dimensions)
-var blockSize = Utils.castToInt(screenWidth / 110);
+var optionsHandler = new OptionsHandler(); // Handle options
+optionsHandler.addOption("textures");
+optionsHandler.addOption("fog");
+optionsHandler.addOption("map")
+optionsHandler.bindOptions();
+
+var inputHandler = new InputHandler(); // Input and key handling
+inputHandler.bind(canvas);
+inputHandler.bindOnClickAction(instructionPrompt.hide.bind(instructionPrompt));
+inputHandler.bindOnPointerLockMoveAction(rotatePlayer)
+
+var blockSize = Utils.castToInt(screenWidth / 110); // Minimap and crosshair values (calculated based on screen dimensions)
 var padding = Utils.castToInt(blockSize / 2);
 var playerSize = Utils.castToInt(padding * 4/5);
 
@@ -60,12 +51,6 @@ var plane = new Utils.Vector2(0, 0.66);
 var walkTime = 0.0;
 var pitch = 0.0;
 
-// Input and key handling
-var inputHandler = new InputHandler();
-inputHandler.bind(canvas);
-inputHandler.bindOnClickAction(instructionPrompt.hide.bind(instructionPrompt));
-inputHandler.bindOnPointerLockMoveAction(rotatePlayer)
-
 function canMove(newPosition) {
     let canMove = false;
     if (map.getMapValue(newPosition.x, newPosition.y) === 0) {
@@ -75,8 +60,7 @@ function canMove(newPosition) {
     return canMove;
 }
 
-// Movement
-function movePlayer(moveSpeed) {
+function movePlayer(moveSpeed) { // Movement
     let moved = false;
 
     if (inputHandler.getArrowKey("right")) {
@@ -125,7 +109,7 @@ function movePlayer(moveSpeed) {
     }
 }
 
-function rotatePlayer(event) {
+function rotatePlayer(event) { // Rotation
     let differenceX = event.movementX / screenWidth;
     let differenceY = event.movementY / screenHeight;
     let rotationSpeedX = (differenceX * 60) * timer.getDeltaTime();
@@ -265,7 +249,7 @@ function main() {
 
         let textureCoords = new Utils.Vector2();
         let offsetedWallX = wallX;
-        if (hitDoor && selectedDoor.state !== 'closed')
+        if (hitDoor && selectedDoor.state !== "closed")
             offsetedWallX += selectedDoor.offset;
         textureCoords.x = Utils.castToInt(offsetedWallX * textureWidth);
         if (side === 0 && rayDirection.x > 0)
@@ -280,7 +264,7 @@ function main() {
             texturePosition += step;
             
             let dimFactor = 0.8 + (0.2 * perpendicularWallDistance);
-            let fogPercentage = (showFog) ? 0.1 * perpendicularWallDistance : 0;
+            let fogPercentage = (optionsHandler.getOption("fog")) ? 0.1 * perpendicularWallDistance : 0;
 
             let selectedTexture;
             if (hitDoor)
@@ -307,7 +291,7 @@ function main() {
             blue /= dimFactor;
             blue = blue * (1 - fogPercentage) + fogPercentage * 0.1;
 
-            if (showTextures) { // Calculate wall texture values instead if box is selected
+            if (optionsHandler.getOption("textures")) { // Calculate wall texture values instead if box is selected
                 let pixelindex = (textureCoords.y * textureWidth + textureCoords.x) * 4;
                 red = selectedTexture.data[pixelindex] / dimFactor;
                 red = red * (1 - fogPercentage) + fogPercentage * 0.1;
@@ -349,7 +333,7 @@ function main() {
             let blue = 0;
             let green = 0;
             
-            if (showTextures) { // Calculate ceiling texture values instead if box is selected
+            if (optionsHandler.getOption("textures")) { // Calculate ceiling texture values instead if box is selected
                 currentDistance = screenHeight / (screenHeight - 2.0 * (y - pitch));
 
                 let weight = currentDistance / perpendicularWallDistance;
@@ -361,7 +345,7 @@ function main() {
                                         Utils.castToInt(currentCeiling.y * textureHeight) % textureHeight);
 
                 let dimFactor = 0.9 + (0.2 * (currentDistance));
-                let fogPercentage = (showFog) ? 0.1 * currentDistance : 0;
+                let fogPercentage = (optionsHandler.getOption("fog")) ? 0.1 * currentDistance : 0;
 
                 let pixelindex = (ceilingTex.y * textureWidth + ceilingTex.x) * 4;
                 red = ceilingTexture.data[pixelindex] / dimFactor;
@@ -380,7 +364,7 @@ function main() {
             let blue = 0;
             let green = 0;
             
-            if (showTextures) { // Calculate floor texture values instead if box is selected
+            if (optionsHandler.getOption("textures")) { // Calculate floor texture values instead if box is selected
                 currentDistance = screenHeight / (2.0 * (y - pitch) - screenHeight);
         
                 let weight = currentDistance / perpendicularWallDistance;
@@ -392,7 +376,7 @@ function main() {
                                         Utils.castToInt(currentFloor.y * textureHeight) % textureHeight);
 
                 let dimFactor = 0.9 + (0.2 * (currentDistance));
-                let fogPercentage = (showFog) ? 0.1 * currentDistance : 0;
+                let fogPercentage = (optionsHandler.getOption("fog")) ? 0.1 * currentDistance : 0;
 
                 let pixelindex = (floorTex.y * textureWidth + floorTex.x) * 4;
                 red = groundTexture.data[pixelindex] / dimFactor;
@@ -408,7 +392,8 @@ function main() {
     }
 
     // Render minimap
-    miniMap.renderMap(renderer, map, position);
+    if (optionsHandler.getOption("map"))
+        miniMap.renderMap(renderer, map, position);
 
     // Render crosshair
     renderer.drawRectangle(screenWidth / 2, screenHeight / 2 - 9, 2, 20, 255, 255, 255);
@@ -427,7 +412,7 @@ function main() {
 // Textures
 const textureWidth = 64;
 const textureHeight = 64;
-const textureUrls = ['textures/bricks.png', 'textures/tiles.png', 'textures/tiles.png', 'textures/door.png'];
+const textureUrls = ["textures/bricks.png", "textures/tiles.png", "textures/tiles.png", "textures/door.png"];
 
 var wallTexture;
 var groundTexture;
