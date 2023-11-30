@@ -8,9 +8,9 @@ import { OptionsHandler } from "./src/OptionsHandler.js";
 
 import * as Utils from "./src/Utils.js";
 
-// Screen dimensions (scaled to 70% of window with 16/10 aspect ratio)
+// Screen dimensions (scaled to 55% of window with 16/10 aspect ratio)
 const aspectRatio = 16.0 / 10.0;
-const screenWidth = Utils.castToInt(window.innerWidth * 0.7);
+const screenWidth = Utils.castToInt(window.innerWidth * 0.55);
 const screenHeight = Utils.castToInt(screenWidth / aspectRatio);
 
 // Dealing with canvas (setting dimensions, creating context)
