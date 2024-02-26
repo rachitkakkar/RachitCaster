@@ -4,15 +4,15 @@
  * @param {string} imageUrl The path to the image.
  */
 export async function loadImage(imageUrl) {
-    let img;
-    const imageLoadPromise = new Promise(resolve => {
-        img = new Image();
-        img.onload = resolve;
-        img.src = imageUrl;
-    });
+  let img;
+  const imageLoadPromise = new Promise(resolve => {
+    img = new Image();
+    img.onload = resolve;
+    img.src = imageUrl;
+  });
 
-    await imageLoadPromise;
-    return img;
+  await imageLoadPromise;
+  return img;
 }
 
 /**
@@ -21,20 +21,20 @@ export async function loadImage(imageUrl) {
  * @param {string} imageUrl The path to the image.
  */
 export async function loadImages(imageUrlArray) {
-    const promiseArray = [];
-    const imageArray = [];
+  const promiseArray = [];
+  const imageArray = [];
 
-    for (let imageUrl of imageUrlArray) {
-        promiseArray.push(new Promise(resolve => {
-            const img = new Image();
-            img.onload = resolve;
-            img.src = imageUrl;
-            imageArray.push(img);
-        }));
-    }
+  for (let imageUrl of imageUrlArray) {
+    promiseArray.push(new Promise(resolve => {
+      const img = new Image();
+      img.onload = resolve;
+      img.src = imageUrl;
+      imageArray.push(img);
+    }));
+  }
 
-    await Promise.all(promiseArray);
-    return imageArray;
+  await Promise.all(promiseArray);
+  return imageArray;
 }
 
 /**
@@ -43,7 +43,7 @@ export async function loadImages(imageUrlArray) {
  * @param {number} value The float to convert to an integer.
  */
 export function castToInt(value) { // Originally parseInt(), but it was very slow and affected performance considerably
-    return ~~value; 
+  return ~~value; 
 }
 
 /**
@@ -52,7 +52,7 @@ export function castToInt(value) { // Originally parseInt(), but it was very slo
  * @param {number} value The integer to convert to a float.
  */
 export function castToFloat(value) { 
-    return parseFloat(value); 
+  return parseFloat(value); 
 }
 
 /**
@@ -63,7 +63,7 @@ export function castToFloat(value) {
  * @param {number} blue The blue value of the RGB color.
  */
 export function RGBToHex(r, g, b) {
-    return "#" + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
+  return "#" + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
 }
 
 /**
@@ -74,11 +74,11 @@ export function RGBToHex(r, g, b) {
  * @param {number} blue The blue value of the RGB color.
  */
 export function RGBToInt(red, green, blue) {
-    var r = red & 0xFF;
-    var g = green & 0xFF;
-    var b = blue & 0xFF;
+  var r = red & 0xFF;
+  var g = green & 0xFF;
+  var b = blue & 0xFF;
 
-    return (r << 24) + (g << 16) + (b << 8) + 255;
+  return (r << 24) + (g << 16) + (b << 8) + 255;
 }
 
 /**
@@ -87,11 +87,11 @@ export function RGBToInt(red, green, blue) {
  * @param {number} integer The 32 bit integer representing a color.
  */
 export function intToRGB(integer) {
-    return {
-        red: integer >> 24 & 0xFF,
-        green: integer >> 16 & 0xFF,
-        blue: integer >> 8 & 0xFF,
-    }
+  return {
+    red: integer >> 24 & 0xFF,
+    green: integer >> 16 & 0xFF,
+    blue: integer >> 8 & 0xFF,
+  }
 }
 
 /**
@@ -104,10 +104,10 @@ export function intToRGB(integer) {
  */
 export function mapValue(value, leftMin, leftMax, rightMin, rightMax)
 {
-    var leftSpan = leftMax - leftMin;
-    var rightSpan = rightMax - rightMin;
-    var valueScaled = float(value - leftMin) / float(leftSpan);
-    return rightMin + (valueScaled * rightSpan);
+  var leftSpan = leftMax - leftMin;
+  var rightSpan = rightMax - rightMin;
+  var valueScaled = float(value - leftMin) / float(leftSpan);
+  return rightMin + (valueScaled * rightSpan);
 }
 
 /**
@@ -117,25 +117,25 @@ export function mapValue(value, leftMin, leftMax, rightMin, rightMax)
  * @param {Vector2} point2 The second point.
  */
 export function swapPoints(point1, point2) {
-    let temp = point1.x;
-    point1.x = point2.x;
-    point2.x = temp;
+  let temp = point1.x;
+  point1.x = point2.x;
+  point2.x = temp;
 
-    temp = point1.y;
-    point1.y = point2.y;
-    point2.y = temp;
+  temp = point1.y;
+  point1.y = point2.y;
+  point2.y = temp;
 }
 
 export function interpolate(i0, d0, i1, d1) {
-    let values = [];
-    let a = (d1 - d0) / (i1 - i0);
-    let d = d0;
-    for (let i = i0; i < i1; i++) {
-        values.push(d);
-        d += a;
-    }
+  let values = [];
+  let a = (d1 - d0) / (i1 - i0);
+  let d = d0;
+  for (let i = i0; i < i1; i++) {
+    values.push(d);
+    d += a;
+  }
 
-    return values;
+  return values;
 }
 
 /**
@@ -145,6 +145,6 @@ export function interpolate(i0, d0, i1, d1) {
  * @param {number} y The y value of the vector.
  */
 export function Vector2(x, y) {
-    this.x = x;
-    this.y = y;
+  this.x = x;
+  this.y = y;
 }
