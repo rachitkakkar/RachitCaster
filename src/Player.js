@@ -9,7 +9,7 @@ export class Player {
    * Creates an instance of Player.
    */
   constructor() {
-    this.position = new Utils.Vector2(1.5, 1.5);
+    this.position = new Utils.Vector2(3.5, 1.5);
     this.direction = new Utils.Vector2(1, 0);
     this.plane = new Utils.Vector2(0, 0.66);
     this.walkTime = 0.0;
@@ -78,7 +78,7 @@ export class Player {
   
     if (moved) {
       this.walkTime += timer.getDeltaTime();
-      this.pitch += (Math.cos(10 * this.walkTime) / 2 * 8);
+      this.pitch += (Math.cos(10 * this.walkTime) / 2 * 7);
     }
   }
 

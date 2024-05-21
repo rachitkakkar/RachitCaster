@@ -14,7 +14,7 @@
 - Features textures, a mini-map, procedural/maze generation, doors, fully implemented first person controller (including strafe and up/down mouselook), and more!
 - Uses modern javascript and browser features such as classes, modules, JSDoc (mostly), PointerLock API, etc.
 
-*This project started as a quest to improve a much older raycaster I made a long time ago, and the original code plus its README can be found in the `Version 1` directory.*
+<!--*This project started as a quest to improve a much older raycaster I made a long time ago, and the original code plus its README can be found in the `Version 1` directory.*-->
 
 # Credits
 Much of the work here is inspired by Lode Vandevenne's excellent tutorials on raycasting.
