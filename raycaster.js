@@ -359,8 +359,9 @@ function main() {
           let d = Utils.castToInt((y - player.pitch) * 256 - screenHeight * 128 + spriteHeight * 128);
           let texY = Utils.castToInt(((d * textureHeight) / spriteHeight) / 256);
 
-          let dimFactor = 0.8 + (0.2 * zBuffer[stripe]);
-          let fogPercentage = (optionsHandler.getOption("fog")) ? 0.1 * zBuffer[stripe] : 0;
+          // Use distance instead of perpendicular wall distance (zBuffer) or transform position to keep shading consistent across whole sprite
+          let dimFactor = 0.8 + (0.085 * sprite.distance);
+          let fogPercentage = (optionsHandler.getOption("fog")) ? 0.015 * sprite.distance : 0;
 
           let pixelIndex = (texY * textureWidth + texX) * 4;
           let red = barrelTexture.data[pixelIndex] / dimFactor;
