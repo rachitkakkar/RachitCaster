@@ -47,7 +47,7 @@ var playerSize = Utils.castToInt(padding * 4/5);
 var miniMap = new MiniMap(blockSize, playerSize, padding);
 
 // Sprite setup
-var sprites = [new Sprite(new Utils.Vector2(2, 1.5), barrelTexture)];
+var sprites = [new Sprite(new Utils.Vector2(5, 1.5), barrelTexture)];
 var zBuffer = []
 for (let z = 0; z < screenWidth; z++) {
   zBuffer.push(0);
@@ -127,7 +127,7 @@ function main() {
       }
     }
 
-    let perpendicularWallDistance;
+    let perpendicularWallDistance = 0;
     if (side === 0) {
       if (hitDoor) {
         mapCoords.x += step.x / 2;
@@ -253,11 +253,15 @@ function main() {
 
         let weight = currentDistance / perpendicularWallDistance;
         
-        let currentCeiling = new Utils.Vector2(weight * floorCeilingWallPos.x + (1.0 - weight) * player.position.x,
-                      weight * floorCeilingWallPos.y + (1.0 - weight) * player.position.y)
-    
-        let ceilingTex = new Utils.Vector2(Utils.castToInt(currentCeiling.x * textureWidth) % textureWidth,
-                    Utils.castToInt(currentCeiling.y * textureHeight) % textureHeight);
+        let currentCeiling = new Utils.Vector2(
+          weight * floorCeilingWallPos.x + (1.0 - weight) * player.position.x,
+          weight * floorCeilingWallPos.y + (1.0 - weight) * player.position.y
+        );
+
+        let ceilingTex = new Utils.Vector2(
+          Utils.castToInt(currentCeiling.x * textureWidth) % textureWidth,
+          Utils.castToInt(currentCeiling.y * textureHeight) % textureHeight
+        );
 
         let dimFactor = 0.9 + (0.2 * (currentDistance));
         let fogPercentage = (optionsHandler.getOption("fog")) ? 0.1 * currentDistance : 0;
@@ -332,9 +336,9 @@ function main() {
     let spriteScreenX = Utils.castToInt((screenWidth / 2) * (1 + transformPosition.x / transformPosition.y));
 
     let spriteHeight = Math.abs(Utils.castToInt(screenHeight / (transformPosition.y)));
-    let drawStartY = -spriteHeight / 2 + screenHeight / 2;
+    let drawStartY = -spriteHeight / 2 + screenHeight / 2 + player.pitch;
     if (drawStartY < 0) drawStartY = 0;
-    let drawEndY = spriteHeight / 2 + screenHeight / 2;
+    let drawEndY = spriteHeight / 2 + screenHeight / 2 + player.pitch;
     if (drawEndY >= screenHeight) drawEndY = screenHeight - 1;
 
     let spriteWidth = Math.abs(Utils.castToInt(screenHeight / (transformPosition.y)));
@@ -343,24 +347,28 @@ function main() {
     let drawEndX = spriteWidth / 2 + spriteScreenX;
     if (drawEndX >= screenWidth) drawEndX = screenWidth - 1;
 
-    for (let stripe = drawStartX; stripe < drawEndX; stripe++) {
-      let texX = Utils.castToInt((stripe - (-spriteWidth / 2 + spriteScreenX)) * textureWidth / spriteWidth);
+    for (let stripe =  Utils.castToInt(drawStartX); stripe <  Utils.castToInt(drawEndX); stripe++) {
+      let texX = Utils.castToInt(Utils.castToInt(256 * (stripe - (-spriteWidth / 2 + spriteScreenX)) * textureWidth / spriteWidth) / 256);
       // the conditions in the if are:
       // 1) it's in front of camera plane so you don't see things behind you
       // 2) it's on the screen (left)
       // 3) it's on the screen (right)
       // 4) ZBuffer, with perpendicular distance
-      if (transformPosition.y > 0 && stripe > 0 && stripe < screenWidth && transformPosition.y < zBuffer[stripe]) {
-        for (let y = drawStartY; y < drawEndY; y++) {
-          let d = (y) - screenHeight + spriteHeight;
-          let texY = ((d * textureHeight) / spriteHeight);
-          let pixelIndex = (textureWidth * texY + texX) * 4;
-          let red = barrelTexture.data[pixelIndex] / 1;
-          // red = red * (1 - fogPercentage) + fogPercentage * 0.1;
-          let green = barrelTexture.data[pixelIndex+1] / 1;
-          // green = green * (1 - fogPercentage) + fogPercentage * 0.1;
-          let blue = barrelTexture.data[pixelIndex+2] / 1;
-          // blue = blue * (1 - fogPercentage) + fogPercentage * 0.1;
+      if (transformPosition.y > 0 && stripe > 0 && stripe < screenWidth && Utils.castToInt(transformPosition.y) < zBuffer[stripe]) {
+        for (let y =  Utils.castToInt(drawStartY); y <  Utils.castToInt(drawEndY); y++) {
+          let d = Utils.castToInt((y - player.pitch) * 256 - screenHeight * 128 + spriteHeight * 128);
+          let texY = Utils.castToInt(((d * textureHeight) / spriteHeight) / 256);
+
+          let dimFactor = 0.8 + (0.2 * zBuffer[stripe]);
+          let fogPercentage = (optionsHandler.getOption("fog")) ? 0.1 * zBuffer[stripe] : 0;
+
+          let pixelIndex = (texY * textureWidth + texX) * 4;
+          let red = barrelTexture.data[pixelIndex] / dimFactor;
+          red = red * (1 - fogPercentage) + fogPercentage * 0.1;
+          let green = barrelTexture.data[pixelIndex+1] / dimFactor;
+          green = green * (1 - fogPercentage) + fogPercentage * 0.1;
+          let blue = barrelTexture.data[pixelIndex+2] / dimFactor;
+          blue = blue * (1 - fogPercentage) + fogPercentage * 0.1;
           if (Utils.castToInt(red) != 0 && Utils.castToInt(green) != 0 && Utils.castToInt(blue) != 0) // Transparency for black
             renderer.drawPixel(stripe, y, red, green, blue);
         }

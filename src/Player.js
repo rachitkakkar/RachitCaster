@@ -9,7 +9,7 @@ export class Player {
    * Creates an instance of Player.
    */
   constructor() {
-    this.position = new Utils.Vector2(3.5, 1.5);
+    this.position = new Utils.Vector2(1.5, 1.5);
     this.direction = new Utils.Vector2(1, 0);
     this.plane = new Utils.Vector2(0, 0.66);
     this.walkTime = 0.0;
