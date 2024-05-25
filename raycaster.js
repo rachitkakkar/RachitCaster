@@ -354,7 +354,7 @@ function main() {
       // 2) it's on the screen (left)
       // 3) it's on the screen (right)
       // 4) ZBuffer, with perpendicular distance
-      if (transformPosition.y > 0 && stripe > 0 && stripe < screenWidth && Utils.castToInt(transformPosition.y) < zBuffer[stripe]) {
+      if (transformPosition.y > 0 && stripe > 0 && stripe < screenWidth && transformPosition.y < zBuffer[stripe]) {
         for (let y =  Utils.castToInt(drawStartY); y <  Utils.castToInt(drawEndY); y++) {
           let d = Utils.castToInt((y - player.pitch) * 256 - screenHeight * 128 + spriteHeight * 128);
           let texY = Utils.castToInt(((d * textureHeight) / spriteHeight) / 256);
