@@ -6,7 +6,7 @@ import { Timer } from "./src/Timer.js";
 import { MiniMap } from "./src/MiniMap.js";
 import { OptionsHandler } from "./src/OptionsHandler.js";
 import { Player } from "./src/Player.js";
-import { Sprite } from "./src/Sprite.js";
+import { Sprite, SpriteHandler } from "./src/Sprite.js";
 
 import * as Utils from "./src/Utils.js";
 
@@ -46,12 +46,7 @@ var playerSize = Utils.castToInt(padding * 4/5);
 
 var miniMap = new MiniMap(blockSize, playerSize, padding);
 
-// Sprite setup
-var sprites = [new Sprite(new Utils.Vector2(5, 1.5), barrelTexture)];
-var zBuffer = []
-for (let z = 0; z < screenWidth; z++) {
-  zBuffer.push(0);
-}
+var spriteHandler;
 
 // Main loop
 function main() {
@@ -313,70 +308,11 @@ function main() {
       renderer.drawPixel(x, y, red, green, blue);
     }
 
-    // Set zBuffer for sprite casting
-    zBuffer[x] = perpendicularWallDistance;
-    for (const sprite of sprites) {
-      sprite.distance = ((player.position.x - sprite.position.x) * (player.position.x - sprite.position.x) + (player.position.y - sprite.position.y) * (player.position.y - sprite.position.y));
-    }
-    sprites.sort((a, b) => a.distance - b.distance);
+    spriteHandler.updateZBuffer(player, perpendicularWallDistance, x);
   }
-
-  for (const sprite of sprites) {
-    let relSpritePosition = new Utils.Vector2(
-      sprite.position.x - player.position.x,
-      sprite.position.y - player.position.y
-    );
-
-    let invDet = 1.0 / (player.plane.x * player.direction.y - player.direction.x * player.plane.y);
-    let transformPosition = new Utils.Vector2(
-      invDet * (player.direction.y * relSpritePosition.x - player.direction.x * relSpritePosition.y),
-      invDet * (-player.plane.y * relSpritePosition.x + player.plane.x * relSpritePosition.y)
-    );
-
-    let spriteScreenX = Utils.castToInt((screenWidth / 2) * (1 + transformPosition.x / transformPosition.y));
-
-    let spriteHeight = Math.abs(Utils.castToInt(screenHeight / (transformPosition.y)));
-    let drawStartY = -spriteHeight / 2 + screenHeight / 2 + player.pitch;
-    if (drawStartY < 0) drawStartY = 0;
-    let drawEndY = spriteHeight / 2 + screenHeight / 2 + player.pitch;
-    if (drawEndY >= screenHeight) drawEndY = screenHeight - 1;
-
-    let spriteWidth = Math.abs(Utils.castToInt(screenHeight / (transformPosition.y)));
-    let drawStartX = -spriteWidth / 2 + spriteScreenX;
-    if (drawStartX < 0) drawStartX = 0;
-    let drawEndX = spriteWidth / 2 + spriteScreenX;
-    if (drawEndX >= screenWidth) drawEndX = screenWidth - 1;
-
-    for (let stripe =  Utils.castToInt(drawStartX); stripe <  Utils.castToInt(drawEndX); stripe++) {
-      let texX = Utils.castToInt(Utils.castToInt(256 * (stripe - (-spriteWidth / 2 + spriteScreenX)) * textureWidth / spriteWidth) / 256);
-      // the conditions in the if are:
-      // 1) it's in front of camera plane so you don't see things behind you
-      // 2) it's on the screen (left)
-      // 3) it's on the screen (right)
-      // 4) ZBuffer, with perpendicular distance
-      if (transformPosition.y > 0 && stripe > 0 && stripe < screenWidth && transformPosition.y < zBuffer[stripe]) {
-        for (let y =  Utils.castToInt(drawStartY); y <  Utils.castToInt(drawEndY); y++) {
-          let d = Utils.castToInt((y - player.pitch) * 256 - screenHeight * 128 + spriteHeight * 128);
-          let texY = Utils.castToInt(((d * textureHeight) / spriteHeight) / 256);
-
-          // Use distance instead of perpendicular wall distance (zBuffer) or transform position to keep shading consistent across whole sprite
-          let dimFactor = 0.8 + (0.085 * sprite.distance);
-          let fogPercentage = (optionsHandler.getOption("fog")) ? 0.015 * sprite.distance : 0;
-
-          let pixelIndex = (texY * textureWidth + texX) * 4;
-          let red = barrelTexture.data[pixelIndex] / dimFactor;
-          red = red * (1 - fogPercentage) + fogPercentage * 0.1;
-          let green = barrelTexture.data[pixelIndex+1] / dimFactor;
-          green = green * (1 - fogPercentage) + fogPercentage * 0.1;
-          let blue = barrelTexture.data[pixelIndex+2] / dimFactor;
-          blue = blue * (1 - fogPercentage) + fogPercentage * 0.1;
-          if (Utils.castToInt(red) != 0 && Utils.castToInt(green) != 0 && Utils.castToInt(blue) != 0) // Transparency for black
-            renderer.drawPixel(stripe, y, red, green, blue);
-        }
-      }
-    }
-  }
-
+  
+  spriteHandler.renderSprites(renderer, player, screenWidth, screenHeight, textureWidth, textureHeight, optionsHandler.getOption("fog"));
+  
   // Render minimap
   if (optionsHandler.getOption("map"))
     miniMap.renderMap(renderer, map, player.position);
@@ -398,13 +334,14 @@ function main() {
 // Textures
 const textureWidth = 64;
 const textureHeight = 64;
-const textureUrls = ["textures/bricks.png", "textures/tiles.png", "textures/tiles.png", "textures/door.png", "textures/barrel 2.png"];
+const textureUrls = ["textures/bricks.png", "textures/tiles.png", "textures/tiles.png", "textures/door.png", "textures/barrel 2.png", "textures/skeleton.bmp"];
 
 var wallTexture;
 var groundTexture;
 var ceilingTexture;
 var doorTexture;
 var barrelTexture;
+var skeletonTexture;
 
 Utils.loadImages(textureUrls).then(textures => {
   ctx.drawImage(textures[0], 0, 0);
@@ -422,5 +359,11 @@ Utils.loadImages(textureUrls).then(textures => {
   ctx.drawImage(textures[4], 0, 0);
   barrelTexture = ctx.getImageData(0, 0, textureWidth, textureHeight);
 
+  ctx.drawImage(textures[5], 0, 0);
+  skeletonTexture = ctx.getImageData(0, 0, textureWidth, textureHeight);
+
   requestAnimationFrame(main);
+
+  // Sprite setup (wait for textures to load)
+  spriteHandler = new SpriteHandler([barrelTexture, skeletonTexture], screenWidth, map);
 });
